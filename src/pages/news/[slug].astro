@@ -1,0 +1,133 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Cat from '../../components/Cat.astro';
+import Card from '../../components/Card.astro';
+import Icon from '../../components/Icon.astro';
+import { allNews, related, newsUrl, coverUrl, ogUrl, type News } from '../../lib/news';
+import { SITE, catBySlug, abs } from '../../lib/site';
+import { jDate, jTime, readingMinutes, faNum, tagSlug } from '../../lib/format';
+
+export async function getStaticPaths() {
+  return (await allNews()).map((n) => ({ params: { slug: n.id }, props: { n } }));
+}
+const { n } = Astro.props as { n: News };
+const d = n.data;
+const c = catBySlug(d.category);
+const { Content } = await render(n);
+const rel = await related(n, 3);
+const minutes = readingMinutes(n.body ?? '');
+const url = abs(newsUrl(n));
+
+const jsonld = [
+  {
+    '@type': 'NewsArticle',
+    '@id': `${url}#article`,
+    mainEntityOfPage: url,
+    headline: d.title,
+    description: d.description,
+    image: [abs(ogUrl(n)), abs(coverUrl(n))],
+    datePublished: d.pubDate.toISOString(),
+    dateModified: (d.updatedDate ?? d.pubDate).toISOString(),
+    inLanguage: 'fa-IR',
+    articleSection: c.name,
+    keywords: d.tags.join(', '),
+    wordCount: (n.body ?? '').split(/\s+/).length,
+    author: { '@type': 'Organization', name: `تحریریه ${SITE.name}`, url: abs('/about/') },
+    publisher: { '@id': `${SITE.url}/#org` },
+    isBasedOn: d.sources.map((s) => s.url),
+    citation: d.sources.map((s) => ({ '@type': 'CreativeWork', name: s.title ?? s.name, url: s.url })),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: `${SITE.url}/` },
+      { '@type': 'ListItem', position: 2, name: c.name, item: abs(`/category/${c.slug}/`) },
+      { '@type': 'ListItem', position: 3, name: d.title },
+    ],
+  },
+];
+const share = encodeURIComponent(url);
+const text = encodeURIComponent(d.title);
+---
+<Base title={d.title} description={d.description} type="article" image={ogUrl(n)} jsonld={jsonld}
+  published={d.pubDate} modified={d.updatedDate ?? d.pubDate} section={c.name} tags={d.tags} noindex={d.noindex} activeCat={c.slug}>
+  <div class="wrap layout">
+    <article class="article">
+      <header class="article__head">
+        <Crumbs items={[{ name: 'خانه', href: '/' }, { name: c.name, href: `/category/${c.slug}/` }, { name: d.title }]} />
+        <Cat slug={c.slug} />
+        <h1 class="article__title">{d.title}</h1>
+        <p class="article__dek">{d.description}</p>
+        <div class="meta">
+          <span><Icon name="clock" /><time datetime={d.pubDate.toISOString()}>{jDate(d.pubDate)}، ساعت {jTime(d.pubDate)}</time></span>
+          <span><Icon name="book" />{faNum(minutes)} دقیقه مطالعه</span>
+          <span>منبع: <span class="ltr">{d.sources.map((s) => s.name).join('، ')}</span></span>
+        </div>
+      </header>
+      <figure class="article__cover" style="margin:0">
+        <img src={coverUrl(n)} alt={d.title} width="1200" height="675" fetchpriority="high" decoding="async" />
+      </figure>
+
+      {d.keyPoints.length > 0 && (
+        <section class="keypoints" aria-labelledby="kp">
+          <h2 id="kp"><Icon name="spark" />خلاصه در یک نگاه</h2>
+          <ul>{d.keyPoints.map((k) => <li>{k}</li>)}</ul>
+        </section>
+      )}
+
+      <div class="prose"><Content /></div>
+
+      <section class="sources" aria-labelledby="src">
+        <h2 id="src">منابع</h2>
+        <ul>
+          {d.sources.map((s) => (
+            <li><a href={s.url} target="_blank" rel="noopener"><Icon name="external" /><span class="ltr">{s.name}{s.title ? ` — ${s.title}` : ''}</span></a></li>
+          ))}
+        </ul>
+        <p class="disclaimer">این خبر بر پایه منابع بالا، با کمک هوش مصنوعی به فارسی بازنویسی و توسط تحریریه {SITE.name} منتشر شده است. برای جزئیات کامل به منبع اصلی مراجعه کنید.</p>
+      </section>
+
+      {d.tags.length > 0 && (
+        <ul class="chips" style="margin-top:20px" aria-label="برچسب ها">
+          {d.tags.map((t) => <li><a class="chip" href={`/tag/${tagSlug(t)}/`}>#{t}</a></li>)}
+        </ul>
+      )}
+
+      <div class="share">
+        <span>اشتراک گذاری:</span>
+        <a href={`https://t.me/share/url?url=${share}&text=${text}`} target="_blank" rel="noopener" aria-label="اشتراک در تلگرام"><Icon name="telegram" /></a>
+        <a href={`https://wa.me/?text=${text}%20${share}`} target="_blank" rel="noopener" aria-label="اشتراک در واتساپ"><Icon name="whatsapp" /></a>
+        <a href={`https://x.com/intent/post?url=${share}&text=${text}`} target="_blank" rel="noopener" aria-label="اشتراک در ایکس"><Icon name="x" /></a>
+        <button type="button" data-copy={url} aria-label="کپی لینک"><Icon name="link" /></button>
+      </div>
+
+      <aside class="parent-cta">
+        <Icon name="wrench" class="iconbtn" />
+        <div><strong>گوشی یا لپ تاپتان مشکل دارد؟</strong>مرکز تخصصی تعمیرات برتر؛ تعمیر موبایل، لپ تاپ و تبلت با گارانتی.</div>
+        <a class="btn" href={SITE.parent.url}>برتر سرویس</a>
+      </aside>
+    </article>
+
+    <aside>
+      <div class="sticky">
+        {rel.length > 0 && (
+          <div class="panel">
+            <h2 class="panel__title">خبرهای مرتبط</h2>
+            <ol class="rank">{rel.map((r) => <li><a href={newsUrl(r)}>{r.data.title}</a></li>)}</ol>
+          </div>
+        )}
+        <div class="panel">
+          <h2 class="panel__title">بیشتر در {c.name}</h2>
+          <a class="more" href={`/category/${c.slug}/`}>همه خبرهای {c.short}<Icon name="arrow" /></a>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <script is:inline>
+    document.querySelector('[data-copy]')?.addEventListener('click', (e) => {
+      const b = e.currentTarget; navigator.clipboard?.writeText(b.dataset.copy).then(() => { b.setAttribute('aria-label', 'کپی شد'); b.style.background = 'var(--accent)'; b.style.color = '#fff'; });
+    });
+  </script>
+</Base>

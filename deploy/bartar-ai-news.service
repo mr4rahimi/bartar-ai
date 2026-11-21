@@ -1,0 +1,14 @@
+# /etc/systemd/system/bartar-ai-news.service — یک اجرای ایجنت خبر (docs/04-deploy.md)
+[Unit]
+Description=Bartar AI news agent (fetch, translate, publish)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=bartar-ai
+WorkingDirectory=/opt/bartar-ai
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node agent/run.mjs
+TimeoutStartSec=50min
+Nice=10

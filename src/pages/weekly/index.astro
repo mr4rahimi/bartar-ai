@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Icon from '../../components/Icon.astro';
+import { jDate } from '../../lib/format';
+
+const items = (await getCollection('weekly', (w) => !w.data.draft)).sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+<Base title="جمع بندی هفتگی اخبار هوش مصنوعی" description="هر هفته، مهم ترین خبرهای هوش مصنوعی در یک نگاه؛ رتبه بندی شده، خلاصه و همراه با ویدیو.">
+  <div class="wrap">
+    <header class="pagehead">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: 'جمع بندی هفتگی' }]} />
+      <h1>جمع بندی هفتگی اخبار هوش مصنوعی</h1>
+      <p>هر هفته مهم ترین خبرهای هوش مصنوعی را رتبه بندی و خلاصه می کنیم. اگر وقت ندارید همه خبرها را دنبال کنید، این صفحه برای شماست.</p>
+    </header>
+    {items.length === 0 ? <div class="empty">اولین جمع بندی هفتگی به زودی منتشر می شود.</div> : (
+      <div class="grid section">
+        {items.map((w) => (
+          <article class="card">
+            <div class="card__body">
+              <span class="cat" style="--h:352">{w.data.weekLabel}</span>
+              <h2 class="card__title"><a href={`/weekly/${w.id}/`}>{w.data.title}</a></h2>
+              <p class="card__dek">{w.data.description}</p>
+              <div class="meta"><span><Icon name="clock" />{jDate(w.data.pubDate)}</span>{w.data.videoUrl && <span><Icon name="video" />ویدیو دارد</span>}</div>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+</Base>

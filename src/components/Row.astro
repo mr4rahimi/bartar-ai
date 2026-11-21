@@ -1,0 +1,17 @@
+---
+import type { News } from '../lib/news';
+import { newsUrl, coverUrl } from '../lib/news';
+import { ago } from '../lib/format';
+import { catBySlug } from '../lib/site';
+interface Props { n: News; showImg?: boolean }
+const { n, showImg = true } = Astro.props;
+const c = catBySlug(n.data.category);
+---
+<article class="row" style={showImg ? undefined : 'grid-template-columns:1fr'}>
+  <div>
+    <span class="cat" style={`--h:${c.hue}`}>{c.name}</span>
+    <h3 class="row__title"><a href={newsUrl(n)}>{n.data.title}</a></h3>
+    <div class="meta"><time datetime={n.data.pubDate.toISOString()}>{ago(n.data.pubDate)}</time><span class="ltr">{n.data.sources[0].name}</span></div>
+  </div>
+  {showImg && <div class="row__img"><img src={coverUrl(n)} alt="" width="1200" height="675" loading="lazy" decoding="async" /></div>}
+</article>

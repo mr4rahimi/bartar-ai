@@ -1,0 +1,157 @@
+---
+import '../styles/global.css';
+import { SITE, CATEGORIES, abs } from '../lib/site';
+import Icon from '../components/Icon.astro';
+
+interface Props {
+  title: string;            // بدون پسوند؛ پسوند «| برتر AI» خودکار اضافه می‌شود
+  description: string;
+  image?: string;           // مسیر تصویر OG
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  jsonld?: object[];
+  published?: Date;
+  modified?: Date;
+  section?: string;
+  tags?: string[];
+  rawTitle?: boolean;       // عنوان را بی‌پسوند بگذار (خانه)
+  activeCat?: string;
+  prev?: string;
+  next?: string;
+}
+const p = Astro.props;
+const canonical = abs(Astro.url.pathname);
+const fullTitle = p.rawTitle ? p.title : `${p.title} | ${SITE.name}`;
+const image = abs(p.image ?? '/og-default.png');
+const umami = import.meta.env.PUBLIC_UMAMI_ID;
+
+const org = {
+  '@type': 'NewsMediaOrganization',
+  '@id': `${SITE.url}/#org`,
+  name: SITE.fullName,
+  alternateName: SITE.name,
+  url: `${SITE.url}/`,
+  logo: { '@type': 'ImageObject', url: abs('/icon-512.png'), width: 512, height: 512 },
+  parentOrganization: { '@type': 'Organization', name: SITE.parent.name, url: SITE.parent.url },
+  publishingPrinciples: abs('/about/'),
+};
+const graph = { '@context': 'https://schema.org', '@graph': [org, ...(p.jsonld ?? [])] };
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={p.description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content={p.noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+  {p.prev && <link rel="prev" href={abs(p.prev)} />}
+  {p.next && <link rel="next" href={abs(p.next)} />}
+  <meta name="theme-color" content="#d2141e" />
+  <!-- گوگل: فاوآیکن باید مضرب ۴۸ پیکسل باشد -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" href="/icon-48.png" type="image/png" sizes="48x48" />
+  <link rel="icon" href="/icon-96.png" type="image/png" sizes="96x96" />
+  <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="alternate" type="application/rss+xml" title={SITE.fullName} href="/rss.xml" />
+  <link rel="alternate" type="application/feed+json" title={SITE.fullName} href="/feed.json" />
+  <link rel="preload" href="/fonts/Vazirmatn-700.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/Vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin />
+
+  <meta property="og:site_name" content={SITE.fullName} />
+  <meta property="og:locale" content={SITE.locale} />
+  <meta property="og:type" content={p.type ?? 'website'} />
+  <meta property="og:title" content={p.title} />
+  <meta property="og:description" content={p.description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={image} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={p.title} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={p.title} />
+  <meta name="twitter:description" content={p.description} />
+  <meta name="twitter:image" content={image} />
+  {p.published && <meta property="article:published_time" content={p.published.toISOString()} />}
+  {p.modified && <meta property="article:modified_time" content={p.modified.toISOString()} />}
+  {p.section && <meta property="article:section" content={p.section} />}
+  {p.tags?.map((t) => <meta property="article:tag" content={t} />)}
+
+  <script is:inline>
+    try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(graph)} />
+  {umami && <script defer src="https://umami.6fx.ir/script.js" data-website-id={umami} />}
+</head>
+<body>
+  <a class="skip" href="#main">رفتن به محتوا</a>
+  <header class="topbar">
+    <div class="wrap topbar__row">
+      <a class="logo" href="/" aria-label={`${SITE.name} — صفحه اصلی`}>
+        <span class="logo__mark">AI</span>
+        <span>برتر AI<small>اخبار هوش مصنوعی</small></span>
+      </a>
+      <span class="topbar__spacer"></span>
+      <a class="iconbtn" href="/weekly/" aria-label="جمع بندی هفتگی" title="جمع بندی هفتگی"><Icon name="video" /></a>
+      <a class="iconbtn" href="/search/" aria-label="جست و جو" title="جست و جو"><Icon name="search" /></a>
+      <button class="iconbtn" id="theme" type="button" aria-label="تغییر حالت روشن و تیره" title="حالت روشن/تیره">
+        <Icon name="moon" class="theme-moon" /><Icon name="sun" class="theme-sun" />
+      </button>
+    </div>
+    <nav class="catnav" aria-label="دسته بندی خبرها">
+      <div class="wrap">
+        <ul>
+          <li><a href="/" aria-current={Astro.url.pathname === '/' ? 'page' : undefined}>همه خبرها</a></li>
+          {CATEGORIES.map((c) => <li><a href={`/category/${c.slug}/`} aria-current={p.activeCat === c.slug ? 'page' : undefined}>{c.short}</a></li>)}
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <slot name="top" />
+  <main id="main"><slot /></main>
+
+  <footer class="footer">
+    <div class="wrap footer__grid">
+      <div>
+        <a class="logo" href="/"><span class="logo__mark">AI</span><span>برتر AI</span></a>
+        <p>{SITE.description}</p>
+      </div>
+      <div>
+        <h2>دسته ها</h2>
+        <ul>{CATEGORIES.slice(0, 5).map((c) => <li><a href={`/category/${c.slug}/`}>{c.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>&nbsp;</h2>
+        <ul>{CATEGORIES.slice(5).map((c) => <li><a href={`/category/${c.slug}/`}>{c.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>برتر AI</h2>
+        <ul>
+          <li><a href="/latest/">آرشیو خبرها</a></li>
+          <li><a href="/weekly/">جمع بندی هفتگی</a></li>
+          <li><a href="/about/">درباره ما و روش کار</a></li>
+          <li><a href="/rss.xml">خوراک RSS</a></li>
+          <li><a href={SITE.parent.url}>{SITE.parent.name}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap footer__bottom">
+      <span>© {new Date().getFullYear().toLocaleString('fa-IR', { useGrouping: false })} {SITE.fullName}، بخشی از <a href={SITE.parent.url}>برتر سرویس</a></span>
+      <span>خبرها با کمک هوش مصنوعی از منابع معتبر جهانی ترجمه و بازنویسی می شوند.</span>
+    </div>
+  </footer>
+  <script is:inline>
+    document.getElementById('theme').addEventListener('click', () => {
+      const r = document.documentElement;
+      const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      r.dataset.theme = dark ? 'light' : 'dark';
+      try { localStorage.setItem('theme', r.dataset.theme); } catch (e) {}
+    });
+  </script>
+</body>
+</html>

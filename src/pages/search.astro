@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { CATEGORIES } from '../lib/site';
+const cats = Object.fromEntries(CATEGORIES.map((c) => [c.slug, [c.name, c.hue]]));
+---
+<Base title="جست و جو در اخبار هوش مصنوعی" description="جست و جو در همه خبرهای هوش مصنوعی برتر AI." noindex>
+  <div class="wrap" style="max-width:860px">
+    <header class="pagehead">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: 'جست و جو' }]} />
+      <h1>جست و جو</h1>
+    </header>
+    <form class="search" role="search" action="/search/">
+      <label for="q" class="sr-only">عبارت جست و جو</label>
+      <input id="q" name="q" type="search" placeholder="مثلا: GPT، جمنای، تراشه انویدیا…" autocomplete="off" />
+      <button class="btn" type="submit">جست و جو</button>
+    </form>
+    <p id="status" class="meta" aria-live="polite"></p>
+    <div id="results"></div>
+  </div>
+  <script is:inline define:vars={{ cats }}>
+    const q = document.getElementById('q'), out = document.getElementById('results'), st = document.getElementById('status');
+    const norm = (s) => s.toLowerCase().replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[‌ً-ْ]/g, ' ').replace(/\s+/g, ' ');
+    const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    let idx = null;
+    async function run() {
+      const term = norm(q.value.trim());
+      history.replaceState(null, '', term ? '?q=' + encodeURIComponent(q.value.trim()) : location.pathname);
+      if (!term) { out.innerHTML = ''; st.textContent = ''; return; }
+      idx ??= (await (await fetch('/search-index.json')).json()).map((r) => [...r, norm(r[1] + ' ' + r[2] + ' ' + r[3])]);
+      const words = term.split(' ');
+      const hits = idx.map((r) => [r, words.reduce((s, w) => s + (r[6].includes(w) ? (norm(r[1]).includes(w) ? 3 : 1) : -100), 0)])
+        .filter((x) => x[1] > 0).sort((a, b) => b[1] - a[1] || b[0][5] - a[0][5]).slice(0, 40);
+      st.textContent = hits.length ? hits.length.toLocaleString('fa-IR') + ' نتیجه' : 'نتیجه ای پیدا نشد.';
+      out.innerHTML = hits.map(([r]) => `<article class="row" style="grid-template-columns:1fr"><div><span class="cat" style="--h:${cats[r[4]][1]}">${cats[r[4]][0]}</span><h2 class="row__title"><a href="${r[0]}">${esc(r[1])}</a></h2><p class="card__dek">${esc(r[2])}</p></div></article>`).join('');
+    }
+    let t; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 180); });
+    document.querySelector('form.search').addEventListener('submit', (e) => { e.preventDefault(); run(); });
+    q.value = new URLSearchParams(location.search).get('q') || ''; if (q.value) run(); q.focus();
+  </script>
+</Base>

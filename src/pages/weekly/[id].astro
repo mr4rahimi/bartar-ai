@@ -1,0 +1,59 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Row from '../../components/Row.astro';
+import { allNews, newsUrl, ogUrl } from '../../lib/news';
+import { SITE, abs } from '../../lib/site';
+import { jDate, faNum } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const ws = await getCollection('weekly', (w) => !w.data.draft);
+  return ws.map((w) => ({ params: { id: w.id }, props: { w } }));
+}
+const { w } = Astro.props as { w: CollectionEntry<'weekly'> };
+const d = w.data;
+const { Content } = await render(w);
+const all = await allNews();
+const items = d.items
+  .slice()
+  .sort((a, b) => a.rank - b.rank)
+  .map((it) => ({ ...it, n: all.find((n) => n.id === it.slug) }))
+  .filter((x) => x.n);
+const url = abs(`/weekly/${w.id}/`);
+const jsonld: object[] = [
+  { '@type': 'NewsArticle', headline: d.title, description: d.description, datePublished: d.pubDate.toISOString(), url,
+    image: items[0]?.n ? abs(ogUrl(items[0].n)) : undefined, publisher: { '@id': `${SITE.url}/#org` }, inLanguage: 'fa-IR',
+    author: { '@type': 'Organization', name: `تحریریه ${SITE.name}` } },
+  { '@type': 'ItemList', name: d.title, itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    itemListElement: items.map((x) => ({ '@type': 'ListItem', position: x.rank, url: abs(newsUrl(x.n!)), name: x.n!.data.title })) },
+];
+if (d.videoUrl) jsonld.push({ '@type': 'VideoObject', name: d.title, description: d.description, uploadDate: d.pubDate.toISOString(),
+  thumbnailUrl: items[0]?.n ? abs(ogUrl(items[0].n)) : abs('/og-default.png'), contentUrl: d.videoUrl, embedUrl: d.videoEmbed ?? d.videoUrl });
+---
+<Base title={d.title} description={d.description} type="article" image={items[0]?.n ? ogUrl(items[0].n) : undefined} jsonld={jsonld} published={d.pubDate}>
+  <div class="wrap">
+    <header class="pagehead article">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: 'جمع بندی هفتگی', href: '/weekly/' }, { name: d.weekLabel }]} />
+      <h1>{d.title}</h1>
+      <p>{jDate(d.weekStart)} تا {jDate(d.weekEnd)} · {faNum(items.length)} خبر مهم</p>
+    </header>
+    {d.videoEmbed && (
+      <div class="article__cover" style="margin:20px 0;max-width:760px">
+        <iframe src={d.videoEmbed} title={d.title} loading="lazy" allowfullscreen style="width:100%;height:100%;border:0"></iframe>
+      </div>
+    )}
+    <div class="prose article"><Content /></div>
+    <ol class="wk section">
+      {items.map((x) => (
+        <li class="wk__item">
+          <span class="wk__rank">{faNum(x.rank)}</span>
+          <div class="wk__body">
+            <Row n={x.n!} />
+            {x.note && <p class="wk__note">{x.note}</p>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>

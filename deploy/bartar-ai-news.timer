@@ -1,0 +1,11 @@
+# هر ۴ ساعت به وقت تهران: ۰۲، ۰۶، ۱۰، ۱۴، ۱۸، ۲۲
+[Unit]
+Description=Run Bartar AI news agent every 4 hours
+
+[Timer]
+OnCalendar=*-*-* 02,06,10,14,18,22:15:00 Asia/Tehran
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

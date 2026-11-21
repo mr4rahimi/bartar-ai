@@ -1,0 +1,24 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import Pager from '../../components/Pager.astro';
+import { allNews } from '../../lib/news';
+import { SITE } from '../../lib/site';
+import { faNum } from '../../lib/format';
+
+export const getStaticPaths = (async ({ paginate }) => paginate(await allNews(), { pageSize: SITE.pageSize })) satisfies GetStaticPaths;
+const { page } = Astro.props;
+const title = page.currentPage > 1 ? `آرشیو اخبار هوش مصنوعی — صفحه ${faNum(page.currentPage)}` : 'آرشیو اخبار هوش مصنوعی';
+---
+<Base title={title} description="همه خبرهای هوش مصنوعی منتشرشده در برتر AI، از تازه ترین به قدیمی ترین." prev={page.url.prev} next={page.url.next}>
+  <div class="wrap">
+    <header class="pagehead">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: 'آرشیو' }]} />
+      <h1>{title}</h1>
+    </header>
+    <div class="grid section">{page.data.map((n) => <Card n={n} hLevel={2} />)}</div>
+    <Pager page={page} />
+  </div>
+</Base>

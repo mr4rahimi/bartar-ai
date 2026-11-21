@@ -1,0 +1,32 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../../layouts/Base.astro';
+import Card from '../../../components/Card.astro';
+import Crumbs from '../../../components/Crumbs.astro';
+import Pager from '../../../components/Pager.astro';
+import { tagIndex } from '../../../lib/news';
+import { SITE } from '../../../lib/site';
+import { faNum } from '../../../lib/format';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const tags = [...(await tagIndex()).values()];
+  return tags.flatMap((t) => paginate(t.items, { params: { tag: t.slug }, props: { t: { name: t.name, count: t.items.length } }, pageSize: SITE.pageSize }));
+}) satisfies GetStaticPaths;
+
+const { page, t } = Astro.props;
+const p = page.currentPage;
+const title = p > 1 ? `اخبار ${t.name} — صفحه ${faNum(p)}` : `آخرین اخبار ${t.name}`;
+const description = `همه خبرهای مربوط به ${t.name} در ${SITE.name}: ${faNum(t.count)} خبر، از تازه ترین به قدیمی ترین.`;
+---
+<!-- برچسب‌های تک‌خبری noindex می‌شوند تا صفحه‌ی کم‌محتوا ایندکس نشود -->
+<Base title={title} description={description} noindex={t.count < 3} prev={page.url.prev} next={page.url.next}>
+  <div class="wrap">
+    <header class="pagehead">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: `#${t.name}` }]} />
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </header>
+    <div class="grid section">{page.data.map((n) => <Card n={n} hLevel={2} />)}</div>
+    <Pager page={page} />
+  </div>
+</Base>

@@ -1,0 +1,10 @@
+[Unit]
+Description=Bartar AI weekly digest
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=bartar-ai
+WorkingDirectory=/opt/bartar-ai
+ExecStart=/usr/bin/node agent/weekly.mjs
+TimeoutStartSec=30min

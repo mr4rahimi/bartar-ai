@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+import Row from '../components/Row.astro';
+import Icon from '../components/Icon.astro';
+import { allNews, hotScore, newsUrl, tagIndex } from '../lib/news';
+import { SITE, CATEGORIES, abs } from '../lib/site';
+import { jTime } from '../lib/format';
+import { getCollection } from 'astro:content';
+
+const news = await allNews();
+const now = Date.now();
+// خبر اصلی: داغ‌ترین خبر ۳۶ ساعت اخیر؛ اگر نبود، تازه‌ترین
+const recent = news.filter((n) => now - n.data.pubDate.getTime() < 36 * 3.6e6);
+const pool = (recent.length >= 5 ? recent : news.slice(0, 12)).slice().sort((a, b) => hotScore(b, now) - hotScore(a, now));
+const lead = pool[0];
+const side = pool.slice(1, 5);
+const used = new Set([lead?.id, ...side.map((s) => s.id)]);
+const latest = news.filter((n) => !used.has(n.id)).slice(0, 12);
+const week = news.filter((n) => now - n.data.pubDate.getTime() < 7 * 864e5).sort((a, b) => b.data.importance - a.data.importance || b.data.pubDate.getTime() - a.data.pubDate.getTime()).slice(0, 7);
+const byCat = CATEGORIES.map((c) => ({ c, items: news.filter((n) => n.data.category === c.slug).slice(0, 3) })).filter((x) => x.items.length >= 3);
+const tags = [...(await tagIndex()).values()].filter((t) => t.items.length >= 2).sort((a, b) => b.items.length - a.items.length).slice(0, 18);
+const weekly = (await getCollection('weekly', (w) => !w.data.draft)).sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())[0];
+
+const jsonld = [
+  { '@type': 'WebSite', '@id': `${SITE.url}/#website`, url: `${SITE.url}/`, name: SITE.fullName, inLanguage: 'fa-IR', publisher: { '@id': `${SITE.url}/#org` },
+    potentialAction: { '@type': 'SearchAction', target: `${SITE.url}/search/?q={query}`, 'query-input': 'required name=query' } },
+  { '@type': 'ItemList', itemListElement: [lead, ...side].filter(Boolean).map((n, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(newsUrl(n!)) })) },
+];
+---
+<Base title={`${SITE.fullName} — ${SITE.tagline}`} rawTitle description={SITE.description} jsonld={jsonld}>
+  {news.length > 0 && (
+    <div class="ticker" slot="top">
+      <div class="wrap">
+        <span class="ticker__label"><span class="ticker__dot"></span>تازه ها</span>
+        <ul>{news.slice(0, 8).map((n) => <li><time>{jTime(n.data.pubDate)}</time><a href={newsUrl(n)}>{n.data.title}</a></li>)}</ul>
+      </div>
+    </div>
+  )}
+  <h1 class="sr-only">{SITE.fullName}: {SITE.tagline}</h1>
+  <div class="wrap">
+    {!lead ? <div class="empty" style="margin-top:32px">هنوز خبری منتشر نشده است.</div> : (
+      <section class="hero" aria-label="خبرهای مهم">
+        <Card n={lead} lead eager hLevel={2} />
+        <div class="hero__side">
+          {side.map((n) => <Row n={n} />)}
+        </div>
+      </section>
+    )}
+
+    <div class="layout section">
+      {latest.length > 0 ? <section aria-labelledby="latest-h">
+        <div class="section__head">
+          <h2 class="section__title" id="latest-h">آخرین خبرهای هوش مصنوعی</h2>
+          <a class="more" href="/latest/">همه خبرها<Icon name="arrow" /></a>
+        </div>
+        <div class="grid">{latest.map((n) => <Card n={n} />)}</div>
+      </section> : <div></div>}
+
+      <aside>
+        <div class="sticky">
+          {weekly && (
+            <div class="weekly-cta">
+              <h3>{weekly.data.title}</h3>
+              <p>{weekly.data.description}</p>
+              <a class="btn btn--light" href={`/weekly/${weekly.id}/`}><Icon name="video" />مرور هفته</a>
+            </div>
+          )}
+          {week.length > 0 && (
+            <div class="panel" style={weekly ? 'margin-top:20px' : ''}>
+              <h2 class="panel__title">مهم ترین های هفته</h2>
+              <ol class="rank">{week.map((n) => <li><a href={newsUrl(n)}>{n.data.title}</a></li>)}</ol>
+            </div>
+          )}
+          {tags.length > 0 && (
+            <div class="panel">
+              <h2 class="panel__title">موضوع های داغ</h2>
+              <ul class="chips">{tags.map((t) => <li><a class="chip" href={`/tag/${t.slug}/`}>{t.name}</a></li>)}</ul>
+            </div>
+          )}
+        </div>
+      </aside>
+    </div>
+
+    {byCat.map(({ c, items }) => (
+      <section class="section" aria-labelledby={`c-${c.slug}`}>
+        <div class="section__head">
+          <h2 class="section__title" id={`c-${c.slug}`}>{c.name}</h2>
+          <a class="more" href={`/category/${c.slug}/`}>بیشتر<Icon name="arrow" /></a>
+        </div>
+        <div class="grid">{items.map((n) => <Card n={n} />)}</div>
+      </section>
+    ))}
+  </div>
+</Base>

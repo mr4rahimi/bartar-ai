@@ -1,0 +1,13 @@
+---
+import Icon from './Icon.astro';
+import { faNum } from '../lib/format';
+interface Props { page: { currentPage: number; lastPage: number; url: { prev?: string; next?: string } } }
+const { page } = Astro.props;
+---
+{page.lastPage > 1 && (
+  <nav class="pager" aria-label="صفحه بندی">
+    {page.url.prev && <a class="btn btn--ghost" href={page.url.prev} rel="prev"><Icon name="arrowNext" />صفحه قبل</a>}
+    <span>صفحه {faNum(page.currentPage)} از {faNum(page.lastPage)}</span>
+    {page.url.next && <a class="btn btn--ghost" href={page.url.next} rel="next">صفحه بعد<Icon name="arrow" /></a>}
+  </nav>
+)}

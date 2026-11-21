@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import Row from '../components/Row.astro';
+import { allNews } from '../lib/news';
+const latest = (await allNews()).slice(0, 5);
+---
+<Base title="صفحه پیدا نشد" description="صفحه ای که دنبالش بودید پیدا نشد." noindex>
+  <div class="wrap" style="max-width:760px">
+    <header class="pagehead"><h1>این صفحه پیدا نشد</h1><p>شاید آدرس اشتباه است یا خبر حذف شده. آخرین خبرها را ببینید یا <a href="/search/" style="color:var(--accent)">جست و جو کنید</a>.</p></header>
+    <div class="panel">{latest.map((n) => <Row n={n} />)}</div>
+  </div>
+</Base>

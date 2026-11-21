@@ -1,0 +1,41 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../../layouts/Base.astro';
+import Card from '../../../components/Card.astro';
+import Crumbs from '../../../components/Crumbs.astro';
+import Pager from '../../../components/Pager.astro';
+import { allNews, newsUrl } from '../../../lib/news';
+import { SITE, CATEGORIES, abs } from '../../../lib/site';
+import { faNum } from '../../../lib/format';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const news = await allNews();
+  return CATEGORIES.flatMap((c) =>
+    paginate(news.filter((n) => n.data.category === c.slug), { params: { cat: c.slug }, props: { c }, pageSize: SITE.pageSize }),
+  );
+}) satisfies GetStaticPaths;
+
+const { page, c } = Astro.props;
+const p = page.currentPage;
+const title = p > 1 ? `اخبار ${c.name} — صفحه ${faNum(p)}` : `اخبار ${c.name}`;
+const jsonld = [
+  { '@type': 'CollectionPage', name: title, url: abs(Astro.url.pathname), description: c.description, inLanguage: 'fa-IR',
+    mainEntity: { '@type': 'ItemList', itemListElement: page.data.map((n, i) => ({ '@type': 'ListItem', position: page.start + i + 1, url: abs(newsUrl(n)) })) } },
+  { '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'خانه', item: `${SITE.url}/` },
+    { '@type': 'ListItem', position: 2, name: c.name, item: abs(`/category/${c.slug}/`) } ] },
+];
+---
+<Base title={title} description={c.description} jsonld={jsonld} activeCat={c.slug} prev={page.url.prev} next={page.url.next} noindex={page.data.length === 0}>
+  <div class="wrap">
+    <header class="pagehead">
+      <Crumbs items={[{ name: 'خانه', href: '/' }, { name: c.name }]} />
+      <h1>{title}</h1>
+      {p === 1 && <p>{c.description}</p>}
+    </header>
+    {page.data.length === 0
+      ? <div class="empty">هنوز خبری در این دسته منتشر نشده است.</div>
+      : <div class="grid section">{page.data.map((n, i) => <Card n={n} eager={i < 2 && p === 1} hLevel={2} />)}</div>}
+    <Pager page={page} />
+  </div>
+</Base>

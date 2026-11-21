@@ -1,0 +1,10 @@
+# جمعه‌ها ساعت ۱۹ تهران (بعد از اجرای ۱۸ ایجنت خبر)
+[Unit]
+Description=Bartar AI weekly digest every Friday evening
+
+[Timer]
+OnCalendar=Fri *-*-* 19:00:00 Asia/Tehran
+Persistent=true
+
+[Install]
+WantedBy=timers.target

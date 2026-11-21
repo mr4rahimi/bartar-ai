@@ -1,0 +1,25 @@
+---
+import type { News } from '../lib/news';
+import { newsUrl, coverUrl } from '../lib/news';
+import { ago } from '../lib/format';
+import { catBySlug } from '../lib/site';
+import Icon from './Icon.astro';
+interface Props { n: News; lead?: boolean; eager?: boolean; hLevel?: 2 | 3 }
+const { n, lead = false, eager = false, hLevel = 3 } = Astro.props;
+const H = `h${hLevel}`;
+const c = catBySlug(n.data.category);
+---
+<article class:list={['card', { 'card--lead': lead }]}>
+  <div class="card__img">
+    <img src={coverUrl(n)} alt="" width="1200" height="675" loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} />
+  </div>
+  <div class="card__body">
+    <span class="cat" style={`--h:${c.hue}`}>{c.name}</span>
+    <H class="card__title"><a href={newsUrl(n)}>{n.data.title}</a></H>
+    {(lead || n.data.importance >= 7) && <p class="card__dek">{n.data.description}</p>}
+    <div class="meta">
+      <span><Icon name="clock" /><time datetime={n.data.pubDate.toISOString()}>{ago(n.data.pubDate)}</time></span>
+      <span class="ltr">{n.data.sources[0].name}</span>
+    </div>
+  </div>
+</article>

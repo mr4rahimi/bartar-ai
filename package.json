@@ -1,0 +1,26 @@
+{
+  "name": "bartar-ai",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/postbuild.mjs",
+    "preview": "astro preview",
+    "agent:run": "node agent/run.mjs",
+    "agent:dry": "node agent/run.mjs --dry",
+    "agent:weekly": "node agent/weekly.mjs",
+    "agent:models": "node agent/models.mjs"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "astro": "^7.2.2",
+    "fast-xml-parser": "^5.12.1",
+    "js-yaml": "^4.3.2",
+    "linkedom": "^0.18.15",
+    "sharp": "^0.35.3"
+  }
+}

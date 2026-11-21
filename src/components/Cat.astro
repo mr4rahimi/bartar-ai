@@ -1,0 +1,9 @@
+---
+import { catBySlug } from '../lib/site';
+interface Props { slug: string; link?: boolean }
+const { slug, link = true } = Astro.props;
+const c = catBySlug(slug);
+---
+{link
+  ? <a class="cat" style={`--h:${c.hue}`} href={`/category/${c.slug}/`}>{c.name}</a>
+  : <span class="cat" style={`--h:${c.hue}`}>{c.name}</span>}
