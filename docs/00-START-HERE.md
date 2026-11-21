@@ -1,6 +1,6 @@
 # ۰. از اینجا شروع کنید — برتر AI (ai.bartar-repairer.com)
 
-> ساخته‌شده: ۲۰۲۶-۱۱-۲۱ (۱۴۰۵/۰۸/۳۰) · وضعیت: **سایت زنده است: https://ai.bartar-repairer.com/ (سرور اصلی، HTTPS)؛ ایجنت هنوز روی فرانکفورت نصب نشده**
+> ساخته‌شده: ۲۰۲۶-۱۱-۲۱ (۱۴۰۵/۰۸/۳۰) · وضعیت: **کاملاً خودکار و زنده: https://ai.bartar-repairer.com/ — ایجنت روی فرانکفورت هر ۴ ساعت، سرور ایران هر ۲ دقیقه می‌کشد** ([`04-deploy.md`](04-deploy.md) §۴.۰.۱)
 > مسیر: `/home/mehdi/Projects/bartar-ai` · گیت: `git@github.com:mr4rahimi/bartar-ai.git` (`main`)
 
 | فایل | موضوع |

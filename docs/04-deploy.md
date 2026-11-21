@@ -9,12 +9,43 @@
 | فایل تأیید سرچ کنسول | ✅ `public/googleaef0f4305b5b80a0.html` (در هر بیلد همراه است؛ **حذف نشود**) |
 | DNS | ✅ پارس‌پک: `A ai → 185.164.73.224`، فقط DNS (پراکسی خاموش) — ۲۰۲۶-۱۱-۲۱. رکورد wildcard `*` همچنان به هاست است |
 | HTTPS | ✅ Let's Encrypt با `certbot --nginx --redirect` (تمدید خودکار)؛ http → https با ۳۰۱. پشتیبان vhost پیش از certbot: `/root/ai.bartar-repairer.com.vhost.bak`. آزمون از فرانکفورت: ۲۰۰ در ۰٫۲ ثانیه |
-| ایجنت روی فرانکفورت | ⬜ عمداً هنوز نه («فعلاً فقط سایت») — §۴.۲ |
+| ایجنت روی فرانکفورت | ✅ نصب و آزموده (۲۰۲۶-۱۱-۲۱): `/opt/bartar-ai/app`، کاربر `bartar-ai`، تایمرهای `bartar-ai-news` و `bartar-ai-weekly` |
+| کشیدن از ایران | ✅ `bartar-ai-pull.timer` روی سرور ایران، هر ۲ دقیقه |
+| پوش گیت از فرانکفورت | ⬜ کلید `/opt/bartar-ai/.ssh/github.pub` باید در GitHub → Deploy keys (با Allow write access) اضافه شود |
 
-**دیپلوی دستی فعلی (از لپ‌تاپ):**
-```bash
-npm run build && rsync -az --delete dist/ root@185.164.73.224:/var/www/bartar-ai/dist/
+## ۴.۰.۱ معماری نهایی انتشار
+
 ```
+فرانکفورت 193.36.84.146                                 سرور اصلی ایران 185.164.73.224
+/opt/bartar-ai/app  (کاربر bartar-ai)                    
+  agent/run.mjs ── build ── DEPLOY_CMD ─► /srv/bartar-ai-www/ ◄── rsync هر ۲ دقیقه (bartar-ai-pull.timer)
+                 └ IndexNow                    ▲ rrsync -ro      └─► /var/www/bartar-ai/dist ─► nginx + HTTPS
+                 └ git commit/push ─► GitHub   │ (authorized_keys کاربر bartar-ai: فقط خواندن همین پوشه)
+```
+
+- **چرا کشیدن؟** فرانکفورت به پورت ۲۲ سرور ایران دسترسی ندارد (فیلتر)، برعکسش دارد. مزیت: فرانکفورت هیچ دسترسی‌ای به سرور ایران
+  ندارد، و هنگام قطعی اینترنت بین‌الملل، سایت ایران آخرین نسخه را نگه می‌دارد.
+- **امنیت آزموده:** با کلید `/root/.ssh/bartar-ai-pull` نوشتن رد می‌شود («sending to read-only server is not allowed») و اجرای دستور هم.
+- `DEPLOY_CMD=rsync -a --delete dist/ /srv/bartar-ai-www/` (محلی روی فرانکفورت). پوشه‌ی جدا تا ایران وسط بیلد (که `dist` را پاک می‌کند) چیز نیمه‌کاره نکشد.
+- هر اجرای ایجنت، حتی بدون خبر تازه، بیلد و انتشار می‌کند تا «… پیش»ها و پنجره‌ی ۴۸ ساعته‌ی `news-sitemap.xml` تازه بمانند.
+- ترتیب: بیلد (گارد سئو) ← انتشار ← IndexNow ← کامیت/پوش. **شکست پوش انتشار را متوقف نمی‌کند**؛ کامیت محلی می‌ماند و اجرای بعد پوش می‌شود.
+
+**دستورهای روزمره:**
+```bash
+# فرانکفورت
+systemctl list-timers | grep bartar-ai
+journalctl -u bartar-ai-news -n 80 --no-pager            # لاگ آخرین اجرا
+systemctl start bartar-ai-news                            # اجرای فوری (۱ تا ۳ دقیقه)
+tail -1 /opt/bartar-ai/app/agent/state/runs.jsonl         # گزارش ماشینی (توکن، ردها)
+# ایران
+systemctl start bartar-ai-pull; journalctl -u bartar-ai-pull -n 5
+```
+
+**تغییر کد:** روی لپ‌تاپ تغییر ← `npm run build` ← push ← روی فرانکفورت: `sudo -u bartar-ai git -C /opt/bartar-ai/app pull --rebase`
+(ایجنت هم اول هر اجرا `git pull --rebase --autostash` می‌کند). **خبرها روی فرانکفورت نوشته می‌شوند؛ پیش از ویرایش خبر روی لپ‌تاپ `git pull`.**
+ویرایش فوری یک خبر: روی فرانکفورت فایل را ویرایش، `systemctl start bartar-ai-news` (بیلد تازه)، سپس کامیت دستی.
+
+**فایل‌های systemd در ریپو:** `deploy/bartar-ai-news.*`، `deploy/bartar-ai-weekly.*` (فرانکفورت)، `deploy/iran-bartar-ai-pull.*` (ایران، نام نصب‌شده بدون پیشوند `iran-`).
 `--delete` فقط داخل همین پوشه اثر دارد. هرگز vhost یا پوشه‌ی سایت‌های دیگر را لمس نکنید؛ پیش از reload همیشه `nginx -t`
 (هشدارهای «protocol options redefined» مال vhostهای قدیمی‌اند و بی‌ضررند).
 
@@ -31,7 +62,9 @@ npm run build && rsync -az --delete dist/ root@185.164.73.224:/var/www/bartar-ai
 
 ترکیب پیشنهادی: **A برای سرو + فرانکفورت به‌عنوان آینه** (همان الگوی Custom PopSite پارس‌پک).
 
-## ۴.۲ نصب روی فرانکفورت (`root@193.36.84.146`)
+## ۴.۲ نصب روی فرانکفورت (`root@193.36.84.146`) — ✅ انجام شد؛ برای نصب دوباره
+
+> مسیر واقعی: کد در `/opt/bartar-ai/app` (خانه‌ی کاربر `/opt/bartar-ai`، کلیدها در `/opt/bartar-ai/.ssh`).
 
 > قواعد workspace (`astro-sites/docs/00-START-HERE.md`): به `ig-gateway.caddy` و سرویس‌های دیگر دست نزنید؛ پیش از هر ویرایش Caddy/nginx پشتیبان و `validate`/`-t`.
 
