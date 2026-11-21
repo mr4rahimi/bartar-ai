@@ -10,15 +10,22 @@ export function gitPull() {
   try { sh('git pull --rebase --autostash'); } catch (e) { log('git pull خطا:', e.stderr || e.message); }
 }
 
+/** کامیت محلی همیشه؛ شکست پوش فقط هشدار (کامیت می‌ماند و اجرای بعد پوش می‌شود) — نباید جلوی انتشار را بگیرد */
 export function gitCommit(message, paths) {
   if (!CONFIG.gitPush) return;
-  sh(`git add ${paths.map((p) => JSON.stringify(p)).join(' ')}`);
-  sh(`git -c user.name="Bartar AI Agent" -c user.email="agent@ai.bartar-repairer.com" commit -m ${JSON.stringify(message)}`);
-  try { sh('git push'); } catch {
-    // اگر کسی هم‌زمان پوش کرده: یک بار rebase و دوباره
-    sh('git pull --rebase'); sh('git push');
-  }
-  log('گیت: پوش شد');
+  try {
+    sh(`git add ${paths.map((p) => JSON.stringify(p)).join(' ')}`);
+    sh(`git -c user.name="Bartar AI Agent" -c user.email="agent@ai.bartar-repairer.com" commit -m ${JSON.stringify(message)}`);
+  } catch (e) { log('git commit خطا:', (e.stderr || e.message).slice(0, 300)); return; }
+  gitPush();
+}
+
+export function gitPush() {
+  if (!CONFIG.gitPush) return;
+  try {
+    try { sh('git push -q'); } catch { sh('git pull --rebase -q'); sh('git push -q'); }
+    log('گیت: پوش شد');
+  } catch (e) { log('⚠ git push ناموفق (کامیت محلی ماند):', (e.stderr || e.message).slice(0, 300)); }
 }
 
 export function build() {

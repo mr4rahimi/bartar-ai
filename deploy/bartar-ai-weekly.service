@@ -5,6 +5,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 User=bartar-ai
-WorkingDirectory=/opt/bartar-ai
+WorkingDirectory=/opt/bartar-ai/app
+Environment=HOME=/opt/bartar-ai
 ExecStart=/usr/bin/node agent/weekly.mjs
 TimeoutStartSec=30min

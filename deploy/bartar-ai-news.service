@@ -7,8 +7,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 User=bartar-ai
-WorkingDirectory=/opt/bartar-ai
-Environment=NODE_ENV=production
+WorkingDirectory=/opt/bartar-ai/app
+Environment=NODE_ENV=production HOME=/opt/bartar-ai
 ExecStart=/usr/bin/node agent/run.mjs
 TimeoutStartSec=50min
 Nice=10

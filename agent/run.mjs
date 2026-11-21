@@ -23,7 +23,7 @@ import { fetchAll, canonicalUrl } from './lib/feeds.mjs';
 import { extract } from './lib/extract.mjs';
 import { loadSeen, saveSeen, publishedNews, writeMarkdown, lock } from './lib/store.mjs';
 import { cleanFa, persianRatio, wordCount, slugify, similarity, tehranDay } from './lib/text.mjs';
-import { gitPull, gitCommit, build, deploy, indexNow } from './lib/publish.mjs';
+import { gitPull, gitCommit, gitPush, build, deploy, indexNow } from './lib/publish.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
 const DRY = !!args.dry;
@@ -192,14 +192,19 @@ try {
 
   // ── ۵. انتشار ────────────────────────────────
   if (written.length && !args['no-build']) {
-    build(); // اگر گارد postbuild بشکند، همین‌جا خطا می‌دهد و چیزی دیپلوی/پوش نمی‌شود
-    gitCommit(`news: ${written.length} خبر تازه\n\n${written.map((w) => `- ${w.title}`).join('\n')}`, written.map((w) => w.file));
+    build(); // اگر گارد postbuild بشکند، همین‌جا خطا می‌دهد و چیزی منتشر/پوش نمی‌شود
     deploy();
     await indexNow(written.map((w) => `/news/${w.slug}/`));
+    gitCommit(`news: ${written.length} خبر تازه\n\n${written.map((w) => `- ${w.title}`).join('\n')}`, written.map((w) => w.file));
   }
 } catch (e) {
   if (e !== 'done') { report.errors.push(String(e?.stack ?? e)); log('خطای کلی:', String(e?.stack ?? e)); process.exitCode = 1; }
 } finally {
+  // بدون خبر تازه هم بیلد تازه: «۲ ساعت پیش»ها و پنجره‌ی ۴۸ ساعته‌ی news-sitemap به‌روز بمانند
+  if (!DRY && !args['no-build'] && report.published.length === 0) {
+    try { build(); deploy(); } catch (e) { report.errors.push(`refresh: ${e.message}`); log('بیلد تازه‌سازی خطا:', String(e.message).slice(0, 300)); }
+  }
+  gitPush(); // اگر کامیتی از اجرای قبل پوش نشده بود
   report.seconds = Math.round((Date.now() - started) / 1000);
   report.usage = usage;
   try { appendFileSync(join(CONFIG.stateDir, 'runs.jsonl'), JSON.stringify(report) + '\n'); } catch {}

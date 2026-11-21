@@ -1,0 +1,11 @@
+# سرور اصلی ایران (185.164.73.224): /etc/systemd/system/bartar-ai-pull.service
+# خروجی بیلد ایجنت را از فرانکفورت می‌کشد (فرانکفورت به SSH ایران دسترسی ندارد؛ برعکسش دارد).
+# کلید /root/.ssh/bartar-ai-pull روی فرانکفورت با rrsync -ro به /srv/bartar-ai-www محدود است. docs/04-deploy.md
+[Unit]
+Description=Pull ai.bartar-repairer.com static build from Frankfurt
+After=network-online.target
+
+[Service]
+Type=oneshot
+Nice=10
+ExecStart=/usr/bin/flock -n /run/bartar-ai-pull.lock /usr/bin/rsync -rlptz --delete --timeout=120 -e "ssh -i /root/.ssh/bartar-ai-pull -o IdentitiesOnly=yes -o ConnectTimeout=20 -o BatchMode=yes" bartar-ai@193.36.84.146: /var/www/bartar-ai/dist/

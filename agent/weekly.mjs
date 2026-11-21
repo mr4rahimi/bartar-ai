@@ -68,9 +68,9 @@ try {
   log(`✓ جمع‌بندی هفتگی: ${id} — ${data.title}`);
   if (!args.has('--no-build')) {
     build();
-    gitCommit(`weekly: ${id}`, [path]);
     deploy();
     await indexNow([`/weekly/${id}/`]);
+    gitCommit(`weekly: ${id}`, [path]);
   }
 } catch (e) {
   if (e !== 'done') { log('خطا:', String(e?.stack ?? e)); process.exitCode = 1; }

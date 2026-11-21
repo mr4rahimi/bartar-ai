@@ -1,0 +1,11 @@
+# /etc/systemd/system/bartar-ai-pull.timer — هر ۲ دقیقه (rsync بی‌تغییر تقریباً بی‌هزینه است)
+[Unit]
+Description=Pull Bartar AI site every 2 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target
