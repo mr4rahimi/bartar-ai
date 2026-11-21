@@ -1,5 +1,5 @@
 /** گام‌های بعد از نوشتن خبر: گیت ← بیلد ← دیپلوی ← IndexNow */
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { CONFIG, ROOT } from './config.mjs';
 import { log } from './log.mjs';
 
@@ -14,8 +14,10 @@ export function gitPull() {
 export function gitCommit(message, paths) {
   if (!CONFIG.gitPush) return;
   try {
-    sh(`git add ${paths.map((p) => JSON.stringify(p)).join(' ')}`);
-    sh(`git -c user.name="Bartar AI Agent" -c user.email="agent@ai.bartar-repairer.com" commit -m ${JSON.stringify(message)}`);
+    // execFileSync بدون شل: پیام چندخطی و نام فایل‌ها بی‌نیاز از نقل‌قول
+    const git = (...a) => execFileSync('git', a, { cwd: ROOT, stdio: 'pipe', encoding: 'utf8' });
+    git('add', '--', ...paths);
+    git('-c', 'user.name=Bartar AI Agent', '-c', 'user.email=agent@ai.bartar-repairer.com', 'commit', '-q', '-m', message);
   } catch (e) { log('git commit خطا:', (e.stderr || e.message).slice(0, 300)); return; }
   gitPush();
 }
