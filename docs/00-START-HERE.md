@@ -1,6 +1,6 @@
 # ۰. از اینجا شروع کنید — برتر AI (ai.bartar-repairer.com)
 
-> ساخته‌شده: ۲۰۲۶-۱۱-۲۱ (۱۴۰۵/۰۸/۳۰) · وضعیت: **سایت روی سرور اصلی بالا آمده (منتظر DNS و HTTPS)؛ ایجنت هنوز روی فرانکفورت نصب نشده**
+> ساخته‌شده: ۲۰۲۶-۱۱-۲۱ (۱۴۰۵/۰۸/۳۰) · وضعیت: **سایت زنده است: https://ai.bartar-repairer.com/ (سرور اصلی، HTTPS)؛ ایجنت هنوز روی فرانکفورت نصب نشده**
 > مسیر: `/home/mehdi/Projects/bartar-ai` · گیت: `git@github.com:mr4rahimi/bartar-ai.git` (`main`)
 
 | فایل | موضوع |
@@ -73,7 +73,7 @@ node scripts/shot.mjs <dir> / /news/<slug>/   # اسکرین‌شات دسکتا
 |---|---|---|
 | 1 | ✅ محل سرو: سرور اصلی ایران | — |
 | 2 | ✅ ریپوی `mr4rahimi/bartar-ai` | — |
-| 3 | ⬜ پارس‌پک: رکورد `A` نام `ai` → `185.164.73.224` (پراکسی خاموش) | بعدش Claude گواهی HTTPS می‌گیرد |
+| 3 | ✅ DNS و HTTPS | — |
 | 4 | Search Console: افزودن `ai.bartar-repairer.com` + ارسال `sitemap.xml` و `news-sitemap.xml` | `03-seo.md` |
 | 5 | Umami: ساخت وب‌سایت در umami.6fx.ir و گذاشتن شناسه در `PUBLIC_UMAMI_ID` | آمار بازدید |
 | 6 | خواندن چند خبر نمونه و نظر درباره‌ی لحن/طول | پرامپت `agent/prompts/writer.md` بر همین اساس تنظیم می‌شود |

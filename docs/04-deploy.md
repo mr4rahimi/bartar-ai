@@ -7,8 +7,8 @@
 | ریپو | ✅ `git@github.com:mr4rahimi/bartar-ai.git` شاخه‌ی `main` |
 | سرو سایت | ✅ **گزینه‌ی A تأیید کاربر**: سرور اصلی `185.164.73.224`، `/var/www/bartar-ai/dist`، vhost `/etc/nginx/sites-available/ai.bartar-repairer.com` (= `deploy/nginx-ai.bartar-repairer.com.conf`)، لاگ `/var/log/nginx/bartar-ai.*.log` |
 | فایل تأیید سرچ کنسول | ✅ `public/googleaef0f4305b5b80a0.html` (در هر بیلد همراه است؛ **حذف نشود**) |
-| DNS | ⬜ رکورد `A` برای `ai` → `185.164.73.224` در پارس‌پک (الان `ai` به‌خاطر wildcard به هاست `185.73.226.44` می‌رود) |
-| HTTPS | ⬜ بعد از DNS: `certbot --nginx -d ai.bartar-repairer.com` |
+| DNS | ✅ پارس‌پک: `A ai → 185.164.73.224`، فقط DNS (پراکسی خاموش) — ۲۰۲۶-۱۱-۲۱. رکورد wildcard `*` همچنان به هاست است |
+| HTTPS | ✅ Let's Encrypt با `certbot --nginx --redirect` (تمدید خودکار)؛ http → https با ۳۰۱. پشتیبان vhost پیش از certbot: `/root/ai.bartar-repairer.com.vhost.bak`. آزمون از فرانکفورت: ۲۰۰ در ۰٫۲ ثانیه |
 | ایجنت روی فرانکفورت | ⬜ عمداً هنوز نه («فعلاً فقط سایت») — §۴.۲ |
 
 **دیپلوی دستی فعلی (از لپ‌تاپ):**

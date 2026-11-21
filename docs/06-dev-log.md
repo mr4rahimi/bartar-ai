@@ -10,7 +10,8 @@
 - فایل تأیید سرچ کنسول `googleaef0f4305b5b80a0.html` به `public/` منتقل شد.
 - سرور `185.164.73.224`: `/var/www/bartar-ai/dist` (rsync)، vhost تازه‌ی `ai.bartar-repairer.com` روی پورت ۸۰، `nginx -t` سبز، reload.
   آزموده با Host header: خانه/درباره/سایت‌مپ/فایل گوگل ۲۰۰، آدرس بی‌اسلش ۳۰۱، ناموجود ۴۰۴، کاور image/webp.
-- DNS: `ai.bartar-repairer.com` هنوز (wildcard) به هاست `185.73.226.44` می‌رود → رکورد A لازم است، بعد certbot.
+- کاربر رکورد `A ai → 185.164.73.224` (فقط DNS) را در پارس‌پک ساخت → `certbot --nginx --redirect` موفق؛ vhost نهایی در `deploy/` همگام شد.
+  سایت زنده: https://ai.bartar-repairer.com/ — از لپ‌تاپ و فرانکفورت ۲۰۰. نوبت کاربر: تأیید سرچ کنسول و ثبت سایت‌مپ‌ها.
 
 ## ۲۰۲۶-۱۱-۲۱ (۱۴۰۵/۰۸/۳۰) — ساخت اولیه
 
