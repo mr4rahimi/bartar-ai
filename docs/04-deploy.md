@@ -1,4 +1,23 @@
-# ۴. نصب و دیپلوی — ⬜ هنوز انجام نشده
+# ۴. نصب و دیپلوی
+
+## ۴.۰ وضعیت (۲۰۲۶-۱۱-۲۱)
+
+| بخش | وضعیت |
+|---|---|
+| ریپو | ✅ `git@github.com:mr4rahimi/bartar-ai.git` شاخه‌ی `main` |
+| سرو سایت | ✅ **گزینه‌ی A تأیید کاربر**: سرور اصلی `185.164.73.224`، `/var/www/bartar-ai/dist`، vhost `/etc/nginx/sites-available/ai.bartar-repairer.com` (= `deploy/nginx-ai.bartar-repairer.com.conf`)، لاگ `/var/log/nginx/bartar-ai.*.log` |
+| فایل تأیید سرچ کنسول | ✅ `public/googleaef0f4305b5b80a0.html` (در هر بیلد همراه است؛ **حذف نشود**) |
+| DNS | ⬜ رکورد `A` برای `ai` → `185.164.73.224` در پارس‌پک (الان `ai` به‌خاطر wildcard به هاست `185.73.226.44` می‌رود) |
+| HTTPS | ⬜ بعد از DNS: `certbot --nginx -d ai.bartar-repairer.com` |
+| ایجنت روی فرانکفورت | ⬜ عمداً هنوز نه («فعلاً فقط سایت») — §۴.۲ |
+
+**دیپلوی دستی فعلی (از لپ‌تاپ):**
+```bash
+npm run build && rsync -az --delete dist/ root@185.164.73.224:/var/www/bartar-ai/dist/
+```
+`--delete` فقط داخل همین پوشه اثر دارد. هرگز vhost یا پوشه‌ی سایت‌های دیگر را لمس نکنید؛ پیش از reload همیشه `nginx -t`
+(هشدارهای «protocol options redefined» مال vhostهای قدیمی‌اند و بی‌ضررند).
+
 
 ## ۴.۱ تصمیم باز: سایت کجا سرو شود؟
 
