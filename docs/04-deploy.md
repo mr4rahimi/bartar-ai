@@ -11,7 +11,7 @@
 | HTTPS | ✅ Let's Encrypt با `certbot --nginx --redirect` (تمدید خودکار)؛ http → https با ۳۰۱. پشتیبان vhost پیش از certbot: `/root/ai.bartar-repairer.com.vhost.bak`. آزمون از فرانکفورت: ۲۰۰ در ۰٫۲ ثانیه |
 | ایجنت روی فرانکفورت | ✅ نصب و آزموده (۲۰۲۶-۱۱-۲۱): `/opt/bartar-ai/app`، کاربر `bartar-ai`، تایمرهای `bartar-ai-news` و `bartar-ai-weekly` |
 | کشیدن از ایران | ✅ `bartar-ai-pull.timer` روی سرور ایران، هر ۲ دقیقه |
-| پوش گیت از فرانکفورت | ⬜ کلید `/opt/bartar-ai/.ssh/github.pub` باید در GitHub → Deploy keys (با Allow write access) اضافه شود |
+| پوش گیت از فرانکفورت | ✅ Deploy key «bartar-ai agen» (Read/write) = `/opt/bartar-ai/.ssh/github`؛ هویت گیت در `.git/config` ریپوی سرور (`Bartar AI Agent`) — بدونش rebase شکست می‌خورد |
 
 ## ۴.۰.۱ معماری نهایی انتشار
 
