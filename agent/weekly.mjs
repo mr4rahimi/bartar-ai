@@ -47,7 +47,7 @@ try {
 
   const prompt = readFileSync(join(ROOT, 'agent/prompts/weekly.md'), 'utf8');
   const user = JSON.stringify(news.map((n) => ({ slug: n.slug, title: n.title, description: n.description, importance: n.importance, category: n.category, keyPoints: n.keyPoints })));
-  const { data: out, model } = await chatJson({ model: CONFIG.writerModel, system: prompt, user, temperature: 0.5, maxTokens: 8000 });
+  const { data: out, model } = await chatJson({ model: CONFIG.writerModelTop, system: prompt, user, temperature: 0.5, maxTokens: 8000 });
   const valid = new Set(news.map((n) => n.slug));
   const items = (out.items ?? []).filter((i) => valid.has(i.slug)).slice(0, 10).map((i, k) => ({ slug: i.slug, rank: k + 1, note: cleanFa(String(i.note ?? '')).trim() }));
   if (items.length < 3) throw new Error('خروجی مدل فهرست معتبر ندارد');

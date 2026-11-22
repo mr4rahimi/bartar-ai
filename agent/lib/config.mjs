@@ -23,11 +23,13 @@ export const CONFIG = {
   baseUrl: env('GAPGPT_BASE_URL', 'https://api.gapgpt.app/v1'),
   /** مدل ارزان برای غربال و دسته‌بندی سرتیترها */
   triageModel: env('TRIAGE_MODEL', 'gpt-5.4-mini'),
-  /** مدل قوی برای نوشتن خبر فارسی.
-   *  ۲۰۲۶-۱۱-۲۲: GapGPT برای claude-sonnet-5-5 هر ورودی متوسط را ~۲۸هزار توکن حساب می‌کند (opus همان را ~۲٫۵هزار)؛ docs/02-agent.md §۲.۴ */
-  writerModel: env('WRITER_MODEL', 'claude-opus-5-5'),
-  /** اگر مدل اصلی خطا داد */
-  fallbackModel: env('FALLBACK_MODEL', 'gpt-5.4'),
+  /** نویسنده‌ی خبر فارسی — ترکیبی (۲۰۲۶-۱۱-۲۲، مقایسه‌ی ۷ مدل روی منبع یکسان: docs/02-agent.md §۲.۴):
+   *  خبرهای عادی با gpt-6-luna (~۰٫۰۰۱$ هر خبر، کیفیت نزدیک Opus)، خبرهای اهمیت ≥ TOP_IMPORTANCE با Opus */
+  writerModel: env('WRITER_MODEL', 'gpt-6-luna'),
+  writerModelTop: env('WRITER_MODEL_TOP', 'claude-opus-5-5'),
+  topImportance: num('TOP_IMPORTANCE', 9),
+  /** اگر مدل اصلی ۲ بار JSON معتبر نداد — از ارائه‌دهنده‌ی دیگر تا قطعی یکی کار را نخواباند */
+  fallbackModel: env('FALLBACK_MODEL', 'claude-haiku-5-5'),
 
   /** حداکثر خبر در هر اجرا (هر ۴ ساعت) و در هر روز تهران */
   perRun: num('PER_RUN', 4),

@@ -167,7 +167,8 @@ try {
       let out, model, problems = [];
       for (let attempt = 0; attempt < 2; attempt++) {
         const feedback = problems.length ? `\n\n---\nنسخه‌ی قبلی این مشکل‌ها را داشت، اصلاح کن: ${problems.join('؛ ')}` : '';
-        ({ data: out, model } = await chatJson({ model: CONFIG.writerModel, system: prompt('writer'), user: user + feedback, temperature: 0.4, maxTokens: 6000 }));
+        const writer = p.importance >= CONFIG.topImportance ? CONFIG.writerModelTop : CONFIG.writerModel;
+        ({ data: out, model } = await chatJson({ model: writer, system: prompt('writer'), user: user + feedback, temperature: 0.4, maxTokens: 6000 }));
         if (out?.skip) break;
         problems = validate(out);
         if (!problems.length) break;
