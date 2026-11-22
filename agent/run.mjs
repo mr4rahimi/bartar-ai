@@ -91,14 +91,29 @@ try {
     const minImp = last24 < CONFIG.quietBelow ? CONFIG.minImportanceQuiet : CONFIG.minImportance;
     log(`${last24} خبر در ۲۴ ساعت اخیر → آستانه‌ی اهمیت ${minImp}`);
     const triaged = [];
-    for (let off = 0; off < candidates.length; off += 60) {
-      const batch = candidates.slice(off, off + 60);
-      const user = JSON.stringify({
-        published: recentPublished.map((n, i) => ({ i, title: n.originalTitle ?? n.title })),
-        items: batch.map((c, i) => ({ i, source: srcById[c.source]?.name, title: c.title, summary: c.summary.slice(0, 280) })),
-      });
-      const { data } = await chatJson({ model: CONFIG.triageModel, system: prompt('triage'), user, temperature: 0, maxTokens: 6000 });
-      for (const r of data.items ?? []) if (batch[r.i]) triaged.push({ ...r, c: batch[r.i] });
+    // مدل ارزان گاهی بخشی از موارد را جا می‌اندازد (۲۰۲۶-۱۱-۲۲: ۱۲ پاسخ برای ۳۶ مورد)؛
+    // دسته‌های کوچک‌تر و پرسیدن دوباره‌ی جاافتاده‌ها، حداکثر دو دور
+    let pending = candidates.slice();
+    for (let round = 0; round < 3 && pending.length; round++) {
+      const missing = [];
+      for (let off = 0; off < pending.length; off += 25) {
+        const batch = pending.slice(off, off + 25);
+        const user = JSON.stringify({
+          published: recentPublished.map((n, i) => ({ i, title: n.originalTitle ?? n.title })),
+          count: batch.length,
+          items: batch.map((c, i) => ({ i, source: srcById[c.source]?.name, title: c.title, summary: c.summary.slice(0, 280) })),
+        });
+        let rows = [];
+        try {
+          const { data } = await chatJson({ model: CONFIG.triageModel, system: prompt('triage'), user, temperature: 0, maxTokens: 6000 });
+          rows = data.items ?? [];
+        } catch (e) { log('غربال خطا:', String(e.message).slice(0, 200)); }
+        const got = new Set();
+        for (const r of rows) if (batch[r.i] && !got.has(r.i)) { got.add(r.i); triaged.push({ ...r, c: batch[r.i] }); }
+        batch.forEach((c, i) => { if (!got.has(i)) missing.push(c); });
+      }
+      if (missing.length) log(`غربال: ${missing.length} مورد بی‌پاسخ ماند${round < 2 ? '، دوباره پرسیده می‌شود' : ''}`);
+      pending = missing;
     }
     // موارد ردشده «دیده» ثبت می‌شوند تا دوباره هزینه نکنند. خبرهای بالای آستانه که در این اجرا
     // به سهمیه نرسیدند ثبت نمی‌شوند تا اجرای بعد دوباره شانس داشته باشند.
