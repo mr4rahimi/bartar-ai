@@ -2,6 +2,27 @@
 
 > هر کار مهم یک بند تاریخ‌دار. جدیدترین بالا.
 
+## ۲۰۲۶-۱۱-۲۲ — «۱۰ ساعت خبر تازه‌ای نیامد»
+
+**تشخیص:** تایمرها سالم بودند و هر ۴ ساعت اجرا شدند، ولی ۴ اجرای پیاپی ۰ خبر. علت‌ها:
+1. **غربال بیش از حد سخت‌گیر:** خبرهای آشکارا هوش مصنوعی «non-ai» شدند (ربات‌های قاتل در سازمان ملل، عامل‌های AI در پیامک، فروش نسخه‌ی AI چهره).
+   → تعریف `ai` در `prompts/triage.md` گسترده شد («موضوع اصلی هوش مصنوعی، حتی سیاسی/اقتصادی؛ شک داری true با اهمیت کمتر»).
+2. **آخر هفته:** فقط ~۱۸ مورد در ۲۴ ساعت از همه‌ی منابع → آستانه‌ی متغیر (`QUIET_BELOW=8` → `MIN_IMPORTANCE_QUIET=5`) + ۶ منبع تازه.
+3. **«no-text»:** MarkTechPost صفحه را با ۴۰۳ به ربات نمی‌دهد → متن کامل فید RSS (`content:encoded`) جایگزین. (تلاش برای جعل UA مرورگر رد شد و کنار گذاشته شد.)
+4. **غربال ناقص:** `gpt-5.4-mini` برای ۳۶ مورد فقط ۱۲ پاسخ داد → دسته‌های ۲۵تایی + پرسیدن دوباره‌ی جاافتاده‌ها.
+5. سهمیه پر نمی‌شد وقتی نویسنده خبری را رد می‌کرد → ۳ گزینه‌ی ذخیره.
+6. **هزینه:** GapGPT برای `claude-sonnet-5-5` هر تماس را ~۲۸هزار توکن حساب می‌کرد (۱۰ برابر عادی) → نویسنده = `claude-opus-5-5` (۰۲-agent §۲.۴).
+- حافظه‌ی `seen` برای موارد اشتباه ردشده‌ی ۴۸ ساعت اخیر پاک شد تا دوباره بررسی شوند.
+- **نتیجه:** دو اجرای واقعی پس از اصلاح = ۳ + ۴ خبر (از جمله دو خبر MarkTechPost از متن فید)، گارد سئو ۱۲۰ صفحه سالم، IndexNow ۲۰۰، پوش گیت.
+
+آزمون شمارش توکن (تکرارپذیر):
+```bash
+node --input-type=module -e "import {CONFIG} from './agent/lib/config.mjs'; import {readFileSync} from 'node:fs';
+const t=readFileSync('agent/prompts/writer.md','utf8'); for (const model of ['claude-sonnet-5-5','claude-opus-5-5','gpt-5.4']) {
+const d=await (await fetch(CONFIG.baseUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+CONFIG.apiKey},
+body:JSON.stringify({model,max_tokens:5,messages:[{role:'user',content:t}]})})).json(); console.log(model,d.usage?.prompt_tokens)}"
+```
+
 ## ۲۰۲۶-۱۱-۲۱ (ادامه ۲) — نصب ایجنت و خودکارسازی کامل
 
 - فرانکفورت: کاربر `bartar-ai`، کد در `/opt/bartar-ai/app` (انتقال از لپ‌تاپ با تاریخچه‌ی گیت و `seen.json`)، `npm ci`، `.env` با `GIT_PUSH=true` و `DEPLOY_CMD` محلی.

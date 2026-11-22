@@ -19,10 +19,10 @@
 ```
 هر ۴ ساعت (systemd timer، سرور فرانکفورت)
   agent/run.mjs
-    ۱. خواندن ۱۷ منبع (RSS + صفحه‌ی Anthropic)            agent/sources.json
+    ۱. خواندن ۲۲ منبع فعال (RSS + صفحه‌ی Anthropic)        agent/sources.json
     ۲. حذف دیده‌شده‌ها، قدیمی‌تر از ۳۶ ساعت، پادکست/ویدیو
     ۳. غربال با gpt-5.4-mini: هوش مصنوعی؟ اهمیت ۱–۱۰؟ دسته؟ رویداد تکراری؟
-    ۴. متن کامل منبع (Readability) → نوشتن خبر فارسی با claude-sonnet-5-5
+    ۴. متن کامل منبع (Readability، یا متن فید RSS) → نوشتن خبر فارسی با claude-opus-5-5
     ۵. بررسی کیفیت (طول، فارسی بودن، ساختار، ضد تکرار) → src/content/news/<slug>.md
     ۶. npm run build (گارد سئو) → git push → DEPLOY_CMD → IndexNow
 جمعه ۱۹:۰۰ تهران
