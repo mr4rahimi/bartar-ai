@@ -49,6 +49,8 @@ agent/state/             (در گیت نیست) seen.json، runs.jsonl، agent.l
 | `TRIAGE_MODEL` | `gpt-5.4-mini` | ارزان؛ فقط سرتیتر و خلاصه |
 | `WRITER_MODEL` | `gpt-6-luna` | نویسنده‌ی خبرهای عادی (§۲.۴) |
 | `WRITER_MODEL_TOP` / `TOP_IMPORTANCE` | `claude-opus-5-5` / ۹ | خبرهای اهمیت ۹–۱۰ و جمع‌بندی هفتگی |
+| `TOP_PER_DAY` | ۲ | حداکثر خبر Opus در روز تهران |
+| `MONTHLY_BUDGET_SOFT` / `MONTHLY_BUDGET_HARD` | ۷ / ۱۰ دلار | بالای نرم: فقط مدل ارزان (هفتگی هم)؛ بالای سخت: خبر تازه نوشته نمی‌شود، فقط بیلد تازه‌سازی |
 | `FALLBACK_MODEL` | `claude-haiku-5-5` | اگر مدل اصلی ۲ بار JSON معتبر نداد (ارائه‌دهنده‌ی دیگر) |
 | `PER_RUN` / `PER_DAY` | ۴ / ۱۵ | |
 | `MIN_IMPORTANCE` | ۶ | |
@@ -75,6 +77,22 @@ agent/state/             (در گیت نیست) seen.json، runs.jsonl، agent.l
 | `gpt-6.1-terra` | ۱ / ۵ | ۰٫۰۰۷۲$ | ❌ | JSON خراب |
 
 تصمیم: خبر عادی `gpt-6-luna`، اهمیت ≥ ۹ و هفتگی `claude-opus-5-5`، جایگزین `claude-haiku-5-5`.
+
+### بودجه‌ی ماهانه — خواست کاربر: ۷ تا ۱۰ دلار
+
+| بخش | محاسبه (هزینه‌ی واقعی اندازه‌گیری‌شده) | ماهانه |
+|---|---|---|
+| غربال (۶ اجرا/روز) | ~۰٫۰۰۵$ × ۱۸۰ | ~۰٫۹$ |
+| خبر عادی luna (~۱۳/روز) | ~۰٫۰۰۱۲$ × ۳۹۰ | ~۰٫۵$ |
+| خبر Opus (اهمیت ۹–۱۰، حداکثر ۲/روز) | ~۰٫۰۹$ × ۳۰ تا ۶۰ | ۲٫۸ تا ۵٫۶$ |
+| هفتگی Opus | ~۰٫۱۵$ × ۴ | ~۰٫۶$ |
+| **جمع** | | **~۵ تا ۸ دلار** |
+
+**محافظ** (`agent/lib/pricing.mjs`): هزینه‌ی هر اجرا با جدول `PRICE` حساب و در `runs.jsonl` (فیلد `cost`) ثبت می‌شود (هفتگی هم، `kind: weekly`).
+اول هر اجرا: `monthSpend()` (ماه میلادی به وقت تهران) و `topWrittenToday()`. لاگ: «بودجه: X$ از 10$ این ماه؛ Opus امروز N مانده».
+آزموده: با `MONTHLY_BUDGET_HARD=1` اجرا متوقف شد. **اگر قیمت‌های GapGPT عوض شد، `PRICE` را به‌روز کنید.**
+هزینه‌ی ماه: `sudo -u bartar-ai node --input-type=module -e "import {monthSpend} from './agent/lib/pricing.mjs'; console.log(monthSpend())"` در `/opt/bartar-ai/app`.
+`compare-models.mjs` در `runs.jsonl` ثبت نمی‌شود (هر بار چند سنت).
 تخمین ماهانه: ~۱۵ خبر/روز × ۰٫۰۰۱۵$ + ~۱ خبر مهم/روز × ۰٫۰۸$ + هفتگی → **حدود ۳ دلار در ماه** (به‌جای ~۳۶ دلار تمام‌Opus).
 مقایسه‌ی دوباره: `node agent/compare-models.mjs <url> <outdir> model1 model2 …` (روی فرانکفورت، چیزی منتشر نمی‌کند).
 
