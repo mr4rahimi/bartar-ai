@@ -33,6 +33,9 @@ export const CONFIG = {
   perDay: num('PER_DAY', 15),
   /** حداقل اهمیت (۱ تا ۱۰) برای انتشار */
   minImportance: num('MIN_IMPORTANCE', 6),
+  /** اگر در ۲۴ ساعت اخیر کمتر از QUIET_BELOW خبر منتشر شده، آستانه = MIN_IMPORTANCE_QUIET */
+  quietBelow: num('QUIET_BELOW', 8),
+  minImportanceQuiet: num('MIN_IMPORTANCE_QUIET', 5),
   /** فقط خبرهای این چند ساعت اخیر */
   maxAgeHours: num('MAX_AGE_HOURS', 36),
   /** قاعده‌ی کارفرما: متن سایت بدون نیم‌فاصله (مثل bartar-repairer). false = نیم‌فاصله بماند */

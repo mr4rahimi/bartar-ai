@@ -6,6 +6,8 @@ import { log } from './log.mjs';
 
 const xml = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@', textNodeName: '#text' });
 
+// ربات همیشه با شناسه‌ی واقعی خودش درخواست می‌دهد؛ اگر سایتی ربات را رد کرد (۴۰۳/۴۲۹) به آن احترام می‌گذاریم
+// و فقط از متنی استفاده می‌کنیم که خود ناشر در فید RSS منتشر کرده است.
 export async function get(url, { timeoutMs = 25_000, accept = '*/*' } = {}) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -43,6 +45,8 @@ function parseFeed(body, src) {
       title: strip(it.title),
       url: txt(it.link) || txt(it.guid),
       summary: strip(it.description ?? it['content:encoded']).slice(0, 600),
+      // متن کامل فید (اگر هست) — جایگزین وقتی سایت منبع ربات را رد می‌کند
+      content: strip(it['content:encoded'] ?? it.description).slice(0, 15000),
       publishedAt: it.pubDate ? new Date(txt(it.pubDate)) : it['dc:date'] ? new Date(txt(it['dc:date'])) : null,
     });
   }
@@ -53,6 +57,7 @@ function parseFeed(body, src) {
       title: strip(it.title),
       url: link?.['@href'] ?? txt(link),
       summary: strip(it.summary ?? it.content).slice(0, 600),
+      content: strip(it.content ?? it.summary).slice(0, 15000),
       publishedAt: new Date(txt(it.published ?? it.updated)),
     });
   }
@@ -91,7 +96,7 @@ export async function fetchSource(src) {
 }
 
 export async function fetchAll(sources) {
-  const res = await Promise.all(sources.map(async (s) => [s.id, await fetchSource(s)]));
+  const res = await Promise.all(sources.filter((s) => !s.disabled).map(async (s) => [s.id, await fetchSource(s)]));
   const stats = Object.fromEntries(res.map(([id, items]) => [id, items.length]));
   return { items: res.flatMap(([, items]) => items), stats };
 }

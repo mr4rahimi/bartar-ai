@@ -86,6 +86,10 @@ try {
   if (args.url) {
     picks = [{ items: candidates, importance: 10, category: null }];
   } else {
+    // روز کم‌خبر (آخر هفته، تعطیلات): آستانه یک پله پایین‌تر تا سایت خالی نماند
+    const last24 = published.filter((n) => Date.now() - n.pubDate < 864e5).length;
+    const minImp = last24 < CONFIG.quietBelow ? CONFIG.minImportanceQuiet : CONFIG.minImportance;
+    log(`${last24} خبر در ۲۴ ساعت اخیر → آستانه‌ی اهمیت ${minImp}`);
     const triaged = [];
     for (let off = 0; off < candidates.length; off += 60) {
       const batch = candidates.slice(off, off + 60);
@@ -105,7 +109,7 @@ try {
       if (!t.ai) { rejectSeen(t, 'non-ai'); continue; }
       if (t.dup != null) { rejectSeen(t, 'dup'); continue; }
       if (!catIds.includes(t.category)) { rejectSeen(t, 'bad-cat'); continue; }
-      if (t.importance < CONFIG.minImportance) { rejectSeen(t, `low:${t.importance}`); continue; }
+      if (t.importance < minImp) { rejectSeen(t, `low:${t.importance}`); continue; }
       // تکراری با خبرهای منتشرشده بر اساس شباهت عنوان (کمربند ایمنی کنار نظر مدل)
       if (recentPublished.some((n) => similarity(n.originalTitle ?? '', t.c.title) > 0.6)) { rejectSeen(t, 'dup-sim'); continue; }
       const key = t.event || t.c.url;
@@ -115,7 +119,7 @@ try {
       events.set(key, e);
     }
     const score = (e) => e.importance + Math.min(e.items.length - 1, 3) * 0.5 + Math.max(...e.items.map((c) => srcById[c.source]?.weight ?? 5)) / 10;
-    picks = [...events.values()].filter((e) => e.importance >= CONFIG.minImportance).sort((a, b) => score(b) - score(a));
+    picks = [...events.values()].filter((e) => e.importance >= minImp).sort((a, b) => score(b) - score(a));
     log(`غربال: ${triaged.length} بررسی، ${events.size} رویداد، ${picks.length} بالای آستانه`);
     for (const p of picks.slice(0, 12)) log(`  [${p.importance}] ${p.category} ${p.event} (${p.items.length} منبع)`);
     picks = picks.slice(0, budget);
@@ -132,11 +136,8 @@ try {
       const items = p.items.slice().sort((a, b) => (srcById[b.source]?.official ? 1 : 0) - (srcById[a.source]?.official ? 1 : 0) || (srcById[b.source]?.weight ?? 0) - (srcById[a.source]?.weight ?? 0));
       const texts = [];
       for (const it of items.slice(0, 3)) {
-        try {
-          const a = it.prefetched ?? (await extract(it.url));
-          if (a.text.length < 400) { log(`متن کوتاه از ${it.url}`); continue; }
-          texts.push({ it, a });
-        } catch (e) { log(`استخراج ناموفق ${it.url}: ${e.message}`); }
+        const a = await getText(it);
+        if (a) texts.push({ it, a });
       }
       if (!texts.length) { for (const it of p.items) seen[it.url] = { at: Date.now(), r: 'no-text' }; report.rejected.push({ event: p.event, why: 'no-text' }); continue; }
 
@@ -226,4 +227,22 @@ function validate(o) {
   if (!Array.isArray(o.keyPoints) || o.keyPoints.length < 2) p.push('keyPoints کم است');
   if (!/^[a-z0-9-]{8,90}$/.test(slugify(o.slug))) p.push('slug نامعتبر');
   return p;
+}
+
+/**
+ * متن کامل منبع: اول صفحه‌ی خود مقاله (Readability)؛ اگر سایت ربات را رد کرد یا متن کوتاه بود،
+ * متن کاملی که خود ناشر در فید RSS (content:encoded) گذاشته. کمتر از ۴۰۰ کاراکتر = بی‌متن.
+ */
+async function getText(it) {
+  if (it.prefetched?.text?.length >= 400) return it.prefetched;
+  try {
+    const a = await extract(it.url);
+    if (a.text.length >= 400) return a;
+    log(`متن کوتاه از ${it.url}`);
+  } catch (e) { log(`استخراج ناموفق ${it.url}: ${e.message}`); }
+  if ((it.content ?? '').length >= 600) {
+    log(`متن از خود فید: ${it.url}`);
+    return { url: it.url, title: it.title, text: it.content, publishedAt: it.publishedAt };
+  }
+  return null;
 }

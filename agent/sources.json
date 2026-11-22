@@ -1,19 +1,178 @@
 [
-  { "id": "openai", "name": "OpenAI", "type": "rss", "url": "https://openai.com/news/rss.xml", "weight": 10, "official": true },
-  { "id": "anthropic", "name": "Anthropic", "type": "html", "url": "https://www.anthropic.com/news", "linkPattern": "^/news/[a-z0-9-]+$", "exclude": ["/news/announcements"], "weight": 10, "official": true },
-  { "id": "deepmind", "name": "Google DeepMind", "type": "rss", "url": "https://deepmind.google/blog/rss.xml", "weight": 10, "official": true },
-  { "id": "google-ai", "name": "Google AI Blog", "type": "rss", "url": "https://blog.google/technology/ai/rss/", "weight": 9, "official": true },
-  { "id": "mistral", "name": "Mistral AI", "type": "rss", "url": "https://mistral.ai/news/rss", "weight": 8, "official": true },
-  { "id": "huggingface", "name": "Hugging Face", "type": "rss", "url": "https://huggingface.co/blog/feed.xml", "weight": 7, "official": true },
-  { "id": "nvidia", "name": "NVIDIA Blog", "type": "rss", "url": "https://blogs.nvidia.com/feed/", "weight": 7, "official": true },
-  { "id": "aws-ml", "name": "AWS Machine Learning", "type": "rss", "url": "https://aws.amazon.com/blogs/machine-learning/feed/", "weight": 4, "official": true },
-  { "id": "techcrunch", "name": "TechCrunch", "type": "rss", "url": "https://techcrunch.com/category/artificial-intelligence/feed/", "weight": 9 },
-  { "id": "verge", "name": "The Verge", "type": "rss", "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", "weight": 9 },
-  { "id": "arstechnica", "name": "Ars Technica", "type": "rss", "url": "https://arstechnica.com/ai/feed/", "weight": 8 },
-  { "id": "mit-tr", "name": "MIT Technology Review", "type": "rss", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed", "weight": 8 },
-  { "id": "venturebeat", "name": "VentureBeat", "type": "rss", "url": "https://venturebeat.com/category/ai/feed/", "weight": 7 },
-  { "id": "wired", "name": "WIRED", "type": "rss", "url": "https://www.wired.com/feed/tag/ai/latest/rss", "weight": 7 },
-  { "id": "the-decoder", "name": "The Decoder", "type": "rss", "url": "https://the-decoder.com/feed/", "weight": 8 },
-  { "id": "mit-news", "name": "MIT News", "type": "rss", "url": "https://news.mit.edu/rss/topic/artificial-intelligence2", "weight": 5 },
-  { "id": "marktechpost", "name": "MarkTechPost", "type": "rss", "url": "https://www.marktechpost.com/feed/", "weight": 4 }
+  {
+    "id": "openai",
+    "name": "OpenAI",
+    "type": "rss",
+    "url": "https://openai.com/news/rss.xml",
+    "weight": 10,
+    "official": true
+  },
+  {
+    "id": "anthropic",
+    "name": "Anthropic",
+    "type": "html",
+    "url": "https://www.anthropic.com/news",
+    "linkPattern": "^/news/[a-z0-9-]+$",
+    "exclude": [
+      "/news/announcements"
+    ],
+    "weight": 10,
+    "official": true
+  },
+  {
+    "id": "deepmind",
+    "name": "Google DeepMind",
+    "type": "rss",
+    "url": "https://deepmind.google/blog/rss.xml",
+    "weight": 10,
+    "official": true
+  },
+  {
+    "id": "google-ai",
+    "name": "Google AI Blog",
+    "type": "rss",
+    "url": "https://blog.google/technology/ai/rss/",
+    "weight": 9,
+    "official": true
+  },
+  {
+    "id": "mistral",
+    "name": "Mistral AI",
+    "type": "rss",
+    "url": "https://mistral.ai/news/rss",
+    "weight": 8,
+    "official": true
+  },
+  {
+    "id": "huggingface",
+    "name": "Hugging Face",
+    "type": "rss",
+    "url": "https://huggingface.co/blog/feed.xml",
+    "weight": 7,
+    "official": true
+  },
+  {
+    "id": "nvidia",
+    "name": "NVIDIA Blog",
+    "type": "rss",
+    "url": "https://blogs.nvidia.com/feed/",
+    "weight": 7,
+    "official": true
+  },
+  {
+    "id": "aws-ml",
+    "name": "AWS Machine Learning",
+    "type": "rss",
+    "url": "https://aws.amazon.com/blogs/machine-learning/feed/",
+    "weight": 4,
+    "official": true
+  },
+  {
+    "id": "techcrunch",
+    "name": "TechCrunch",
+    "type": "rss",
+    "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+    "weight": 9
+  },
+  {
+    "id": "verge",
+    "name": "The Verge",
+    "type": "rss",
+    "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+    "weight": 9
+  },
+  {
+    "id": "arstechnica",
+    "name": "Ars Technica",
+    "type": "rss",
+    "url": "https://arstechnica.com/ai/feed/",
+    "weight": 8
+  },
+  {
+    "id": "mit-tr",
+    "name": "MIT Technology Review",
+    "type": "rss",
+    "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
+    "weight": 8
+  },
+  {
+    "id": "venturebeat",
+    "name": "VentureBeat",
+    "type": "rss",
+    "url": "https://venturebeat.com/category/ai/feed/",
+    "weight": 7,
+    "disabled": true,
+    "note": "همیشه 429 (حتی با UA مرورگر) — 2026-11-22"
+  },
+  {
+    "id": "wired",
+    "name": "WIRED",
+    "type": "rss",
+    "url": "https://www.wired.com/feed/tag/ai/latest/rss",
+    "weight": 7
+  },
+  {
+    "id": "the-decoder",
+    "name": "The Decoder",
+    "type": "rss",
+    "url": "https://the-decoder.com/feed/",
+    "weight": 8
+  },
+  {
+    "id": "mit-news",
+    "name": "MIT News",
+    "type": "rss",
+    "url": "https://news.mit.edu/rss/topic/artificial-intelligence2",
+    "weight": 5
+  },
+  {
+    "id": "marktechpost",
+    "name": "MarkTechPost",
+    "type": "rss",
+    "url": "https://www.marktechpost.com/feed/",
+    "weight": 4
+  },
+  {
+    "id": "google-research",
+    "name": "Google Research",
+    "type": "rss",
+    "url": "https://research.google/blog/rss/",
+    "weight": 8,
+    "official": true
+  },
+  {
+    "id": "the-register",
+    "name": "The Register",
+    "type": "rss",
+    "url": "https://www.theregister.com/software/ai_ml/headlines.atom",
+    "weight": 7
+  },
+  {
+    "id": "siliconangle",
+    "name": "SiliconANGLE",
+    "type": "rss",
+    "url": "https://siliconangle.com/category/ai/feed/",
+    "weight": 6
+  },
+  {
+    "id": "zdnet",
+    "name": "ZDNET",
+    "type": "rss",
+    "url": "https://www.zdnet.com/topic/artificial-intelligence/rss.xml",
+    "weight": 6
+  },
+  {
+    "id": "9to5mac",
+    "name": "9to5Mac",
+    "type": "rss",
+    "url": "https://9to5mac.com/guides/apple-intelligence/feed/",
+    "weight": 6
+  },
+  {
+    "id": "tomshardware",
+    "name": "Tom's Hardware",
+    "type": "rss",
+    "url": "https://www.tomshardware.com/feeds/tag/artificial-intelligence",
+    "weight": 6
+  }
 ]
