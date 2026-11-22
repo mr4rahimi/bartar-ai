@@ -15,6 +15,8 @@ import { chatJson, usage } from './lib/llm.mjs';
 import { publishedNews, writeMarkdown, lock } from './lib/store.mjs';
 import { cleanFa } from './lib/text.mjs';
 import { gitPull, gitCommit, build, deploy, indexNow } from './lib/publish.mjs';
+import { costOf, monthSpend } from './lib/pricing.mjs';
+import { appendFileSync } from 'node:fs';
 
 const args = new Set(process.argv.slice(2));
 const unlock = lock('weekly');
@@ -46,8 +48,10 @@ try {
   if (news.length < 3) { log('خبر کافی نیست'); throw 'done'; }
 
   const prompt = readFileSync(join(ROOT, 'agent/prompts/weekly.md'), 'utf8');
+  // بالای سقف نرم بودجه، هفتگی هم با مدل ارزان
+  const weeklyModel = monthSpend() < CONFIG.budgetSoft ? CONFIG.writerModelTop : CONFIG.writerModel;
   const user = JSON.stringify(news.map((n) => ({ slug: n.slug, title: n.title, description: n.description, importance: n.importance, category: n.category, keyPoints: n.keyPoints })));
-  const { data: out, model } = await chatJson({ model: CONFIG.writerModelTop, system: prompt, user, temperature: 0.5, maxTokens: 8000 });
+  const { data: out, model } = await chatJson({ model: weeklyModel, system: prompt, user, temperature: 0.5, maxTokens: 8000 });
   const valid = new Set(news.map((n) => n.slug));
   const items = (out.items ?? []).filter((i) => valid.has(i.slug)).slice(0, 10).map((i, k) => ({ slug: i.slug, rank: k + 1, note: cleanFa(String(i.note ?? '')).trim() }));
   if (items.length < 3) throw new Error('خروجی مدل فهرست معتبر ندارد');
@@ -75,6 +79,8 @@ try {
 } catch (e) {
   if (e !== 'done') { log('خطا:', String(e?.stack ?? e)); process.exitCode = 1; }
 } finally {
-  log(`توکن: ${usage.prompt}+${usage.completion}`);
+  const cost = Number(costOf(usage.byModel).toFixed(5));
+  log(`توکن: ${usage.prompt}+${usage.completion}، هزینه ${cost}$`);
+  try { appendFileSync(join(CONFIG.stateDir, 'runs.jsonl'), JSON.stringify({ at: new Date().toISOString(), kind: 'weekly', usage, cost, published: [], topWritten: 0 }) + '\n'); } catch {}
   unlock();
 }

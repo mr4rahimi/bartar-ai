@@ -24,6 +24,7 @@ import { extract } from './lib/extract.mjs';
 import { loadSeen, saveSeen, publishedNews, writeMarkdown, lock } from './lib/store.mjs';
 import { cleanFa, persianRatio, wordCount, slugify, similarity, tehranDay } from './lib/text.mjs';
 import { gitPull, gitCommit, gitPush, build, deploy, indexNow } from './lib/publish.mjs';
+import { costOf, monthSpend, topWrittenToday } from './lib/pricing.mjs';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, v] = a.replace(/^--/, '').split('='); return [k, v ?? true]; }));
 const DRY = !!args.dry;
@@ -37,7 +38,7 @@ const prompt = (name) => readFileSync(join(ROOT, `agent/prompts/${name}.md`), 'u
 const unlock = lock();
 if (!unlock) { log('اجرای دیگری در جریان است؛ خروج'); process.exit(0); }
 const started = Date.now();
-const report = { at: new Date().toISOString(), dry: DRY, fetched: 0, fresh: 0, picked: [], published: [], rejected: [], errors: [] };
+const report = { at: new Date().toISOString(), dry: DRY, fetched: 0, fresh: 0, picked: [], published: [], rejected: [], errors: [], topWritten: 0 };
 
 try {
   gitPull();
@@ -48,6 +49,13 @@ try {
   const budget = Math.min(Number(args.limit ?? CONFIG.perRun), CONFIG.perDay - todayCount);
   log(`شروع — امروز ${todayCount} خبر منتشر شده، سهمیه‌ی این اجرا ${budget}`);
   if (budget <= 0 && !args.url) { log('سهمیه‌ی روز پر است'); throw 'done'; }
+
+  // محافظ بودجه‌ی ماهانه (docs/02-agent.md §۲.۴)
+  const spent = monthSpend();
+  var allowTop = spent < CONFIG.budgetSoft;
+  var topLeft = Math.max(0, CONFIG.topPerDay - topWrittenToday());
+  log(`بودجه: ${spent.toFixed(2)}$ از ${CONFIG.budgetHard}$ این ماه${allowTop ? '' : ' — بالای سقف نرم، فقط مدل ارزان'}؛ Opus امروز ${topLeft} مانده`);
+  if (spent >= CONFIG.budgetHard && !args.url) { log('⚠ سقف بودجه‌ی ماهانه پر است؛ خبر تازه نوشته نمی‌شود'); throw 'done'; }
 
   // ── ۱–۲. جمع‌آوری ─────────────────────────────
   let candidates;
@@ -167,7 +175,8 @@ try {
       let out, model, problems = [];
       for (let attempt = 0; attempt < 2; attempt++) {
         const feedback = problems.length ? `\n\n---\nنسخه‌ی قبلی این مشکل‌ها را داشت، اصلاح کن: ${problems.join('؛ ')}` : '';
-        const writer = p.importance >= CONFIG.topImportance ? CONFIG.writerModelTop : CONFIG.writerModel;
+        const useTop = p.importance >= CONFIG.topImportance && allowTop && topLeft > 0;
+        const writer = useTop ? CONFIG.writerModelTop : CONFIG.writerModel;
         ({ data: out, model } = await chatJson({ model: writer, system: prompt('writer'), user: user + feedback, temperature: 0.4, maxTokens: 6000 }));
         if (out?.skip) break;
         problems = validate(out);
@@ -198,6 +207,7 @@ try {
       if (!data.coverText) delete data.coverText;
       const file = writeMarkdown(CONFIG.newsDir, slug, data, cleanFa(out.body).replace(/^#\s.*\n/m, ''));
       written.push({ slug, file, title: data.title });
+      if (model === CONFIG.writerModelTop) { report.topWritten++; topLeft--; }
       published.unshift({ slug, ...data, pubDate });
       for (const { it } of texts) seen[it.url] = { at: Date.now(), r: 'published', slug };
       log(`✓ نوشته شد: ${slug} — ${data.title}`);
@@ -226,8 +236,9 @@ try {
   gitPush(); // اگر کامیتی از اجرای قبل پوش نشده بود
   report.seconds = Math.round((Date.now() - started) / 1000);
   report.usage = usage;
+  report.cost = Number(costOf(usage.byModel).toFixed(5));
   try { appendFileSync(join(CONFIG.stateDir, 'runs.jsonl'), JSON.stringify(report) + '\n'); } catch {}
-  log(`پایان — ${report.published.length} خبر، ${report.seconds} ثانیه، توکن: ${usage.prompt}+${usage.completion}`);
+  log(`پایان — ${report.published.length} خبر، ${report.seconds} ثانیه، توکن: ${usage.prompt}+${usage.completion}، هزینه ${report.cost}$`);
   unlock();
 }
 

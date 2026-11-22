@@ -11,12 +11,7 @@ import { chat, parseJson, usage } from './lib/llm.mjs';
 import { extract } from './lib/extract.mjs';
 import { cleanFa, wordCount, persianRatio } from './lib/text.mjs';
 
-export const PRICE = {
-  'claude-opus-5-5': [4, 20], 'claude-sonnet-5-5': [2, 10], 'claude-haiku-5-5': [0.1, 0.5],
-  'gpt-6-luna': [0.1, 0.5], 'gpt-6.1-terra': [1, 5], 'gpt-6.2-sol': [2, 10], 'gpt-5.4': [2.5, 15], 'gpt-5.4-mini': [0.75, 4.5],
-  'gpt-5.4-nano': [0.2, 1.25], 'gpt-5.6-luna': [0.2, 1.2], 'deepseek-v4.1-flash': [0.15, 0.6], 'gemini-3.8-flash': [0.75, 3.75],
-  'gemini-4-hydrogen': [1.5, 7.5],
-};
+import { PRICE } from './lib/pricing.mjs';
 
 const [url, out, ...models] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });

@@ -28,6 +28,11 @@ export const CONFIG = {
   writerModel: env('WRITER_MODEL', 'gpt-6-luna'),
   writerModelTop: env('WRITER_MODEL_TOP', 'claude-opus-5-5'),
   topImportance: num('TOP_IMPORTANCE', 9),
+  /** حداکثر خبر با مدل گران (Opus) در روز تهران */
+  topPerDay: num('TOP_PER_DAY', 2),
+  /** بودجه‌ی ماهانه (دلار): بالای SOFT فقط مدل ارزان؛ بالای HARD هیچ خبر تازه‌ای نوشته نمی‌شود (فقط بیلد تازه‌سازی) */
+  budgetSoft: num('MONTHLY_BUDGET_SOFT', 7),
+  budgetHard: num('MONTHLY_BUDGET_HARD', 10),
   /** اگر مدل اصلی ۲ بار JSON معتبر نداد — از ارائه‌دهنده‌ی دیگر تا قطعی یکی کار را نخواباند */
   fallbackModel: env('FALLBACK_MODEL', 'claude-haiku-5-5'),
 
