@@ -137,7 +137,8 @@ try {
     picks = [...events.values()].filter((e) => e.importance >= minImp).sort((a, b) => score(b) - score(a));
     log(`غربال: ${triaged.length} بررسی، ${events.size} رویداد، ${picks.length} بالای آستانه`);
     for (const p of picks.slice(0, 12)) log(`  [${p.importance}] ${p.category} ${p.event} (${p.items.length} منبع)`);
-    picks = picks.slice(0, budget);
+    // چند گزینه‌ی ذخیره: اگر نویسنده خبری را رد کرد (تکراری/کم‌متن)، بعدی جایش را پر کند
+    picks = picks.slice(0, budget + 3);
   }
   report.picked = picks.map((p) => ({ event: p.event, importance: p.importance, urls: p.items.map((i) => i.url) }));
   if (DRY) throw 'done'; // اجرای آزمایشی چیزی را «دیده‌شده» ثبت نمی‌کند
@@ -146,6 +147,7 @@ try {
   // ── ۴. نوشتن ─────────────────────────────────
   const written = [];
   for (const p of picks) {
+    if (written.length >= budget) break;
     try {
       // منبع اصلی: رسمی‌ترین/معتبرترین
       const items = p.items.slice().sort((a, b) => (srcById[b.source]?.official ? 1 : 0) - (srcById[a.source]?.official ? 1 : 0) || (srcById[b.source]?.weight ?? 0) - (srcById[a.source]?.weight ?? 0));

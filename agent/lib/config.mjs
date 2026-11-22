@@ -23,8 +23,9 @@ export const CONFIG = {
   baseUrl: env('GAPGPT_BASE_URL', 'https://api.gapgpt.app/v1'),
   /** مدل ارزان برای غربال و دسته‌بندی سرتیترها */
   triageModel: env('TRIAGE_MODEL', 'gpt-5.4-mini'),
-  /** مدل قوی برای نوشتن خبر فارسی */
-  writerModel: env('WRITER_MODEL', 'claude-sonnet-5-5'),
+  /** مدل قوی برای نوشتن خبر فارسی.
+   *  ۲۰۲۶-۱۱-۲۲: GapGPT برای claude-sonnet-5-5 هر ورودی متوسط را ~۲۸هزار توکن حساب می‌کند (opus همان را ~۲٫۵هزار)؛ docs/02-agent.md §۲.۴ */
+  writerModel: env('WRITER_MODEL', 'claude-opus-5-5'),
   /** اگر مدل اصلی خطا داد */
   fallbackModel: env('FALLBACK_MODEL', 'gpt-5.4'),
 
