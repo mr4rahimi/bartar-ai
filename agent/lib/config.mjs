@@ -20,7 +20,7 @@ const num = (k, d) => Number(env(k, d));
 
 export const CONFIG = {
   apiKey: env('GAPGPT_API_KEY', ''),
-  baseUrl: env('GAPGPT_BASE_URL', 'https://api.gapgpt.app/v1'),
+  baseUrl: env('GAPGPT_BASE_URL', 'https://api.gapgpt.ir/v1'),
   /** مدل ارزان برای غربال و دسته‌بندی سرتیترها */
   triageModel: env('TRIAGE_MODEL', 'gpt-5.4-mini'),
   /** نویسنده‌ی خبر فارسی — ترکیبی (۲۰۲۶-۱۱-۲۲، مقایسه‌ی ۷ مدل روی منبع یکسان: docs/02-agent.md §۲.۴):
